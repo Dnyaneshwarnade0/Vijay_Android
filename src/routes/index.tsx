@@ -163,7 +163,13 @@ function HomePage() {
 
       {/* Stats */}
       <section className="bg-indigo-brand text-paper py-16 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,var(--gold)/15,transparent_55%)] opacity-30" />
+        <div
+          className="absolute inset-0 opacity-30"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 20% 20%, var(--gold) 0%, transparent 55%)",
+          }}
+        />
         <div className="mx-auto max-w-7xl px-5 sm:px-8 grid grid-cols-2 md:grid-cols-4 gap-8 text-center relative">
           {stats.map((s) => (
             <Reveal key={s.label}>

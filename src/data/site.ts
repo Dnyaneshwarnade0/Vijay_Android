@@ -36,14 +36,11 @@ const IMG = "https://shantibrahmagurukulam.com/wp-content/uploads/2026/07";
 export const founder = {
   name: "Ankush Maharaj Kadam",
   role: "Founder & Head Acharya",
-  photo: `${IMG}/%E0%A4%B8%E0%A4%82%E0%A4%B8%E0%A5%8D%E0%A4%A5%E0%A4%BE%E0%A4%AA%E0%A4%95-%E0%A4%85%E0%A4%82%E0%A4%95%E0%A5%81%E0%A4%B6-%E0%A4%AE%E0%A4%B9%E0%A4%B0%E0%A4%BE%E0%A4%9C-%E0%A4%95%E0%A4%A6%E0%A4%AE.jpg`.replace("%E0%A4%B9%E0%A4%B0", "%E0%A4%B9%E0%A4%BE"),
+  photo: `${IMG}/%E0%A4%B8%E0%A4%82%E0%A4%B8%E0%A5%8D%E0%A4%A5%E0%A4%BE%E0%A4%AA%E0%A4%95-%E0%A4%85%E0%A4%82%E0%A4%95%E0%A5%81%E0%A4%B6-%E0%A4%AE%E0%A4%B9%E0%A4%BE%E0%A4%B0%E0%A4%BE%E0%A4%9C-%E0%A4%95%E0%A4%A6%E0%A4%AE.jpg`,
   bio: "Rooted in the Varkari tradition and inspired by the teachings of Kurekar Baba, Ankush Maharaj founded Shantibrahma Gurukulam to carry the timeless discipline of Haripath, Dnyaneshwari and Bhakti to the next generation — woven together with a modern school education.",
   quote:
     "Knowledge and devotion are the true provisions for life — this is what we place in the hands of every child.",
 };
-
-// Correct founder photo URL (kept raw)
-founder.photo = `${IMG}/%E0%A4%B8%E0%A4%82%E0%A4%B8%E0%A5%8D%E0%A4%A5%E0%A4%BE%E0%A4%AA%E0%A4%95-%E0%A4%85%E0%A4%82%E0%A4%95%E0%A5%81%E0%A4%B6-%E0%A4%AE%E0%A4%B9%E0%A4%BE%E0%A4%B0%E0%A4%BE%E0%A4%9C-%E0%A4%95%E0%A4%A6%E0%A4%AE.jpg`;
 
 export const homeSlides = [
   { src: `${IMG}/%E0%A4%B6%E0%A4%BE%E0%A4%82%E0%A4%A4%E0%A5%80%E0%A4%AC%E0%A5%8D%E0%A4%B0%E0%A4%B9%E0%A5%8D%E0%A4%AE-%E0%A4%95%E0%A5%81%E0%A4%B0%E0%A5%87%E0%A4%95%E0%A4%B0-%E0%A4%AC%E0%A4%BE%E0%A4%AC%E0%A4%BE%E0%A4%82%E0%A4%9A%E0%A5%8D%E0%A4%AF%E0%A4%BE-%E0%A4%86%E0%A4%97%E0%A4%AE%E0%A4%A8%E0%A4%BE%E0%A4%A8%E0%A4%BF%E0%A4%AE%E0%A4%BF%E0%A4%A4%E0%A5%8D%E0%A4%A4.png`, alt: "Welcoming ceremony at the gurukulam" },
