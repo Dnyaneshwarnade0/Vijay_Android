@@ -59,6 +59,25 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             });
             return Response.json({ ok: true });
           }
+          if (settings.admin_chat_id === chatId && text.startsWith("/find")) {
+            await callTelegram(token, "sendMessage", {
+              chat_id: chatId,
+              text: "🔍 Find Artist — category chunein:",
+              reply_markup: {
+                inline_keyboard: [
+                  [
+                    { text: "Keyboard", callback_data: "find:Keyboard" },
+                    { text: "Tabla", callback_data: "find:Tabla" },
+                  ],
+                  [
+                    { text: "Octapad", callback_data: "find:Octapad" },
+                    { text: "Banjo", callback_data: "find:Banjo" },
+                  ],
+                ],
+              },
+            });
+            return Response.json({ ok: true });
+          }
           if (settings.admin_chat_id === chatId && (text.startsWith("/free") || text.startsWith("/help"))) {
             if (text.startsWith("/help")) {
               await callTelegram(token, "sendMessage", {
@@ -66,6 +85,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
                 parse_mode: "HTML",
                 text:
                   "<b>Commands</b>\n" +
+                  "/find — category chunkar available artists dekhein\n" +
                   "/free 2026-09-01 2026-09-05 Tabla — in dates me free artists + contact\n" +
                   "/free kal Harmonium\n" +
                   "/pending — approval waale accounts",
@@ -133,6 +153,17 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           }
 
           const [action, userId] = cq.data.split(":");
+          if (action === "find" && userId) {
+            await callTelegram(token, "answerCallbackQuery", { callback_query_id: cq.id, text: userId });
+            await callTelegram(token, "sendMessage", {
+              chat_id: chatId,
+              parse_mode: "HTML",
+              text:
+                `<b>${userId}</b> select hua.\n\nAb start date aur end date bhejein, jaise:\n` +
+                `<code>2026-09-01 2026-09-05 ${userId}</code>`,
+            });
+            return Response.json({ ok: true });
+          }
           if ((action === "approve" || action === "reject") && userId) {
             const status = action === "approve" ? "approved" : "rejected";
             const { data: updated, error } = await supabaseAdmin

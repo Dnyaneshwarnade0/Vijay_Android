@@ -21,6 +21,11 @@ const HELP_STEPS: Record<AppRole, string[]> = {
     "List me jo artist dikhein, unka phone number tap karke call karein.",
     "“Bot” tab me sawaal poochh kar bhi free artist dhoondh sakte hain.",
   ],
+  student: [
+    "Apna account admin se approve karwayein.",
+    "Approval ke baad aap apni details dekh sakte hain.",
+    "Kisi bhi madad ke liye admin se sampark karein.",
+  ],
   admin: [
     "Naye account approve ya reject karein — Telegram par bhi wahi buttons aate hain.",
     "Telegram settings me bot se /start karke apna chat link karein.",

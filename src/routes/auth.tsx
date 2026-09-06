@@ -25,7 +25,8 @@ import {
   KeyRound,
   RefreshCw,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  GraduationCap
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PhoneFrame, CATEGORIES, type Category } from "@/components/PhoneFrame";
@@ -66,7 +67,7 @@ function OtpBoxes({
   );
 }
 
-type Mode = "login" | "signup" | "forgot" | "verify";
+type Mode = "login" | "signup" | "forgot" | "verify" | "confirmed";
 
 function errMessage(err: unknown): string | null {
   if (err instanceof Error) return err.message;
@@ -109,9 +110,10 @@ export const Route = createFileRoute("/auth")({
 });
 
 const roles: { value: AppRole; label: string; mr: string; hint: string; icon: React.ElementType }[] = [
+  { value: "student", label: "Student", mr: "विद्यार्थी", hint: "Sangeet seekhein", icon: GraduationCap },
   { value: "artist", label: "Artist", mr: "कलाकार", hint: "Apni khaali dates select karein", icon: Music },
   { value: "kathakar", label: "Kathakar", mr: "कथाकार", hint: "Available artist dhundein", icon: Users },
-  { value: "admin", label: "Admin", mr: "प्रशासक", hint: "Accounts approve karein", icon: ShieldCheck },
+  { value: "admin", label: "Admin", mr: "प्रशासक", hint: "Seedha login karein", icon: ShieldCheck },
 ];
 
 const categoryIcons: Record<string, React.ElementType> = {
@@ -134,7 +136,7 @@ function AuthPage() {
   const [newPassword, setNewPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
-  const [role, setRole] = useState<AppRole>("artist");
+  const [role, setRole] = useState<AppRole>("student");
   const [category, setCategory] = useState<Category>(CATEGORIES[0]);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [signupStep, setSignupStep] = useState(1);
@@ -305,8 +307,8 @@ function AuthPage() {
         console.error("telegram notify failed", e);
       }
 
-      toast.success("Email Verified! Approval Request Admin ko bhej di gayi.");
-      navigate({ to: "/dashboard" });
+      toast.success("Email Verified!");
+      setViewMode("confirmed");
     } catch (err) {
       console.error("verify otp error", err);
       toast.error(errMessage(err) ?? "Galat ya Expired OTP Code. 'Dobara bhejein' par click karein.");
@@ -384,19 +386,39 @@ function AuthPage() {
     }
   }
 
-  const maxSteps = role === "artist" ? 3 : 2;
+  const isArtist = role === "artist";
+  const maxSteps = isArtist ? 4 : 3;
+  const displayStep = isArtist ? signupStep : signupStep >= 3 ? signupStep - 1 : signupStep;
 
   const renderStepper = () => {
     return (
       <div className="mb-5 flex gap-1.5">
-        <div className={`h-1 flex-1 rounded-full ${signupStep >= 1 ? "bg-maroon" : "bg-[#EADCCB]"}`} />
-        <div className={`h-1 flex-1 rounded-full ${signupStep >= 2 ? "bg-maroon" : "bg-[#EADCCB]"}`} />
-        {role === "artist" && (
-          <div className={`h-1 flex-1 rounded-full ${signupStep >= 3 ? "bg-maroon" : "bg-[#EADCCB]"}`} />
-        )}
+        {Array.from({ length: maxSteps }, (_, i) => (
+          <div
+            key={i}
+            className={`h-1 flex-1 rounded-full ${displayStep >= i + 1 ? "bg-maroon" : "bg-[#EADCCB]"}`}
+          />
+        ))}
       </div>
     );
   };
+
+  function goBackStep() {
+    if (signupStep === 3 && !isArtist) setSignupStep(1);
+    else setSignupStep((prev) => prev - 1);
+  }
+
+  function goToDetailsStep() {
+    if (!isValidName(fullName)) {
+      toast.error("Full Name me kam se kam 3 letters hone chahiye.");
+      return;
+    }
+    if (!isValidPhone(phone)) {
+      toast.error("Kripya 10-digit ka valid Indian Mobile Number enter karein.");
+      return;
+    }
+    setSignupStep(4);
+  }
 
   return (
     <PhoneFrame>
@@ -635,6 +657,25 @@ function AuthPage() {
           </div>
         )}
 
+        {viewMode === "confirmed" && (
+          <div className="animate-in fade-in zoom-in-95 duration-300 flex flex-1 flex-col items-center justify-center text-center">
+            <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-green2/15 border-2 border-green2">
+              <CheckCircle2 className="h-12 w-12 text-green2" />
+            </div>
+            <h2 className="font-display text-3xl font-black text-maroon mb-2">Account Confirmed!</h2>
+            <p className="mb-8 text-sm text-ink2 max-w-xs">
+              Aapka email verify ho gaya hai. Ab payment karke admin se mili License Key enter karein.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/dashboard" })}
+              className="bg-hero flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-base font-bold text-warm shadow-[0_12px_26px_-12px_rgba(123,30,53,0.85)] transition hover:opacity-95 cursor-pointer"
+            >
+              Continue <ArrowRight className="h-5 w-5" />
+            </button>
+          </div>
+        )}
+
         {viewMode === "signup" && (
           <div>
             {/* Common Header for all Steps */}
@@ -648,20 +689,14 @@ function AuthPage() {
                 </button>
               ) : (
                 <button
-                  onClick={() => {
-                    if (signupStep === 3 && role !== "artist") {
-                      setSignupStep(1);
-                    } else {
-                      setSignupStep(prev => prev - 1);
-                    }
-                  }}
+                  onClick={goBackStep}
                   className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-white text-ink transition hover:bg-surf2 cursor-pointer"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
               )}
               <h4 className="font-display text-sm font-bold text-ink3 tracking-widest uppercase">
-                STEP {signupStep === 3 && role !== "artist" ? 2 : signupStep} OF {maxSteps}
+                STEP {displayStep} OF {maxSteps}
               </h4>
             </div>
 
@@ -705,6 +740,11 @@ function AuthPage() {
                 <button
                   type="button"
                   onClick={() => {
+                    if (role === "admin") {
+                      toast.info("Admin ke liye seedha login hai.");
+                      setViewMode("login");
+                      return;
+                    }
                     if (role === "artist") setSignupStep(2);
                     else setSignupStep(3);
                   }}
@@ -755,9 +795,9 @@ function AuthPage() {
             {signupStep === 3 && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-300">
                 <h2 className="font-display text-3xl font-black text-ink mb-1">Your details</h2>
-                <p className="mb-6 text-sm text-ink2">Takes less than a minute.</p>
+                <p className="mb-6 text-sm text-ink2">Apna naam aur mobile number bharein.</p>
 
-                <form onSubmit={handleSignup} className="space-y-4">
+                <div className="space-y-4">
                   {/* Full Name */}
                   <div>
                     <div className={`flex h-14 items-center gap-3 rounded-2xl border bg-white px-4 ${
@@ -765,38 +805,15 @@ function AuthPage() {
                     }`}>
                       <UserRound className="h-5 w-5 shrink-0 text-ink3" />
                       <input
-                        required
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        placeholder="Full Name"
+                        placeholder="Enter Full Name"
                         className="w-full bg-transparent text-base text-ink outline-none placeholder:text-ink3"
                       />
                     </div>
                     {fullName && !isValidName(fullName) && (
                       <p className="mt-1 text-xs text-red-500 flex items-center gap-1 font-medium">
                         <AlertCircle className="h-3.5 w-3.5" /> Full Name me minimum 3 letters hone chahiye
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Email */}
-                  <div>
-                    <div className={`flex h-14 items-center gap-3 rounded-2xl border bg-white px-4 ${
-                      email && !isValidEmail(email) ? "border-red-500 ring-2 ring-red-100" : "border-border"
-                    }`}>
-                      <Mail className="h-5 w-5 shrink-0 text-ink3" />
-                      <input
-                        type="email"
-                        required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Email Address"
-                        className="w-full bg-transparent text-base text-ink outline-none placeholder:text-ink3"
-                      />
-                    </div>
-                    {email && !isValidEmail(email) && (
-                      <p className="mt-1 text-xs text-red-500 flex items-center gap-1 font-medium">
-                        <AlertCircle className="h-3.5 w-3.5" /> Sahi Email enter karein (e.g. name@domain.com)
                       </p>
                     )}
                   </div>
@@ -809,10 +826,9 @@ function AuthPage() {
                       <Phone className="h-5 w-5 shrink-0 text-ink3" />
                       <input
                         type="tel"
-                        required
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        placeholder="10-Digit Mobile Number"
+                        placeholder="Enter Phone Number"
                         className="w-full bg-transparent text-base text-ink outline-none placeholder:text-ink3"
                       />
                     </div>
@@ -822,6 +838,46 @@ function AuthPage() {
                       </p>
                     )}
                   </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={goToDetailsStep}
+                  className="bg-hero mt-8 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-base font-bold text-warm shadow-[0_12px_26px_-12px_rgba(123,30,53,0.85)] transition hover:opacity-95 cursor-pointer"
+                >
+                  Save & Continue <ArrowRight className="h-5 w-5" />
+                </button>
+              </div>
+            )}
+
+            {signupStep === 4 && (
+              <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                <h2 className="font-display text-3xl font-black text-ink mb-1">Account banayein</h2>
+                <p className="mb-6 text-sm text-ink2">Email aur password set karein.</p>
+
+                <form onSubmit={handleSignup} className="space-y-4">
+                  {/* Email */}
+                  <div>
+                    <div className={`flex h-14 items-center gap-3 rounded-2xl border bg-white px-4 ${
+                      email && !isValidEmail(email) ? "border-red-500 ring-2 ring-red-100" : "border-border"
+                    }`}>
+                      <Mail className="h-5 w-5 shrink-0 text-ink3" />
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter Email Address"
+                        className="w-full bg-transparent text-base text-ink outline-none placeholder:text-ink3"
+                      />
+                    </div>
+                    {email && !isValidEmail(email) && (
+                      <p className="mt-1 text-xs text-red-500 flex items-center gap-1 font-medium">
+                        <AlertCircle className="h-3.5 w-3.5" /> Sahi Email enter karein (e.g. name@domain.com)
+                      </p>
+                    )}
+                  </div>
+
 
                   {/* Password */}
                   <div>
@@ -833,7 +889,7 @@ function AuthPage() {
                         minLength={6}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Password banayein (8+ akshar)"
+                        placeholder="Enter Password"
                         className="w-full bg-transparent text-base text-ink outline-none placeholder:text-ink3"
                       />
                       <button

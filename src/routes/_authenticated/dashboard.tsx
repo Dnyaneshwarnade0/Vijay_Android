@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Bot, ClipboardCheck, Clock, Search, Send, XCircle } from "lucide-react";
+import { Bot, BookOpen, ClipboardCheck, Clock, Search, Send, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { notifyAdminOfSignup } from "@/lib/telegram.functions";
 import { useMe, useSession } from "@/lib/session";
@@ -14,6 +14,9 @@ import { ArtistDashboard } from "@/components/ArtistDashboard";
 import { AvailabilitySearch } from "@/components/AvailabilitySearch";
 import { ArtistBot } from "@/components/ArtistBot";
 import { TelegramSettings } from "@/components/TelegramSettings";
+import { LicenseGate, isLicenseUnlocked } from "@/components/LicenseGate";
+import { CourseManager } from "@/components/CourseManager";
+import { StudentCourses } from "@/components/StudentCourses";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -36,6 +39,7 @@ function Dashboard() {
   const { data, isLoading } = useMe(session?.user.id);
   const [adminTab, setAdminTab] = useState("approvals");
   const [kathakarTab, setKathakarTab] = useState("bot");
+  const [unlockTick, setUnlockTick] = useState(0);
 
   useEffect(() => {
     if (!loading && !session) navigate({ to: "/auth", search: { mode: "login" }, replace: true });
@@ -54,6 +58,20 @@ function Dashboard() {
 
   const { profile, role } = data;
 
+  // Artist / Kathakar ko payment ke baad admin se mili License Key daalni hoti hai.
+  const needsLicense =
+    (role === "artist" || role === "kathakar") && !isLicenseUnlocked(profile.id);
+  if (needsLicense) {
+    return (
+      <LicenseGate
+        key={unlockTick}
+        profile={profile}
+        role={role}
+        onUnlocked={() => setUnlockTick((t) => t + 1)}
+      />
+    );
+  }
+
   if (profile.status !== "approved") {
     return <GateScreen status={profile.status} userId={profile.id} />;
   }
@@ -69,7 +87,8 @@ function Dashboard() {
             onChange={setAdminTab}
             items={[
               { key: "approvals", label: "Approvals", icon: ClipboardCheck },
-              { key: "search", label: "Free artists", icon: Search },
+              { key: "search", label: "Find artist", icon: Search },
+              { key: "courses", label: "Courses", icon: BookOpen },
               { key: "bot", label: "Bot", icon: Bot },
               { key: "telegram", label: "Telegram", icon: Send },
             ]}
@@ -78,8 +97,17 @@ function Dashboard() {
       >
         {adminTab === "approvals" && <AdminDashboard meId={profile.id} />}
         {adminTab === "search" && <AvailabilitySearch />}
+        {adminTab === "courses" && <CourseManager />}
         {adminTab === "bot" && <ArtistBot />}
         {adminTab === "telegram" && <TelegramSettings />}
+      </AppShell>
+    );
+  }
+
+  if (role === "student") {
+    return (
+      <AppShell profile={profile} role={role}>
+        <StudentCourses />
       </AppShell>
     );
   }
@@ -102,7 +130,7 @@ function Dashboard() {
           onChange={setKathakarTab}
           items={[
             { key: "bot", label: "Bot", icon: Bot },
-            { key: "search", label: "Free artists", icon: Search },
+            { key: "search", label: "Find artist", icon: Search },
           ]}
         />
       }
