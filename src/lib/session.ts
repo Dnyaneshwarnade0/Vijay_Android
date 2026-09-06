@@ -3,7 +3,7 @@ import type { Session } from "@supabase/supabase-js";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "admin" | "artist" | "kathakar";
+export type AppRole = "admin" | "artist" | "kathakar" | "student";
 export type AccountStatus = "pending" | "approved" | "rejected" | "revoked";
 
 export interface Profile {
@@ -22,6 +22,7 @@ export const roleLabel: Record<AppRole, string> = {
   admin: "Admin",
   artist: "Artist / कलाकार",
   kathakar: "Kathakar / कथाकार",
+  student: "Student / विद्यार्थी",
 };
 
 export function useSession() {
