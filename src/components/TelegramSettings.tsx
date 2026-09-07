@@ -110,8 +110,11 @@ export function TelegramSettings() {
             }}
           >
             <p className="text-xs leading-relaxed text-ink2">
-              Bot token project secrets me save hai. Agar dusra bot use karna ho to naya token
-              niche paste karein.
+              {s?.issue === "invalid_token"
+                ? "Saved bot token invalid ya revoked hai. BotFather se naya token generate karke yahan paste karein."
+                : s?.issue === "webhook_error"
+                  ? "Bot token save hai, lekin Telegram webhook verify nahi ho pa raha. Token aur internet settings check karein."
+                  : "Bot token project secrets me save hai. Agar dusra bot use karna ho to naya token niche paste karein."}
             </p>
             <input
               value={token}
