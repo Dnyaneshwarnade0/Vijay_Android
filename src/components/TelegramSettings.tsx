@@ -1,33 +1,42 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { CheckCircle2, Loader2, Send, Trash2 } from "lucide-react";
-import {
-  connectTelegramBot,
-  disconnectTelegramBot,
-  getTelegramStatus,
-} from "@/lib/telegram.functions";
+import { CheckCircle2, Loader2, Send } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { SectionCard } from "@/components/AppShell";
+
+type TelegramStatus = {
+  connected: boolean;
+  botUsername: string | null;
+  chatLinked: boolean;
+  webhookUrl: string | null;
+  issue: string | null;
+};
+
+async function telegramAdmin(action: "status" | "connect", token?: string): Promise<TelegramStatus> {
+  const { data, error } = await supabase.functions.invoke("telegram-admin", {
+    body: { action, ...(token ? { token } : {}) },
+  });
+  if (error) throw new Error(error.message);
+  if (data?.error) throw new Error(data.error);
+  return data as TelegramStatus;
+}
 
 export function TelegramSettings() {
   const qc = useQueryClient();
-  const status = useServerFn(getTelegramStatus);
-  const connect = useServerFn(connectTelegramBot);
-  const disconnect = useServerFn(disconnectTelegramBot);
   const [token, setToken] = useState("");
 
   // Status ko sirf screen khulne aur save/remove ke baad check karein.
   // Invalid token ke case mein background retry/refetch se page blink nahi hona chahiye.
   const q = useQuery({
     queryKey: ["telegram-status"],
-    queryFn: () => status(),
+    queryFn: () => telegramAdmin("status"),
     refetchInterval: false,
     retry: false,
   });
 
   const save = useMutation({
-    mutationFn: (t: string) => connect({ data: { token: t } }),
+    mutationFn: (t: string) => telegramAdmin("connect", t),
     onSuccess: () => {
       setToken("");
       toast.success("Bot connect ho gaya — ab Telegram par /start bhejein");
@@ -36,14 +45,7 @@ export function TelegramSettings() {
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Connect fail ho gaya"),
   });
 
-  const remove = useMutation({
-    mutationFn: () => disconnect(),
-    onSuccess: () => {
-      toast.success("Chat unlink ho gayi");
-      qc.invalidateQueries({ queryKey: ["telegram-status"] });
-    },
-    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Remove fail ho gaya"),
-  });
+
 
   const s = q.data;
 
@@ -88,18 +90,6 @@ export function TelegramSettings() {
               <li>3. /pending likhkar pending list bhi dekh sakte hain.</li>
             </ol>
 
-            <button
-              onClick={() => remove.mutate()}
-              disabled={remove.isPending}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-crimson/50 px-4 py-3 text-sm font-semibold text-crimson disabled:opacity-60"
-            >
-              {remove.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Trash2 className="h-4 w-4" />
-              )}
-              Chat unlink karein
-            </button>
           </div>
         ) : (
           <form
