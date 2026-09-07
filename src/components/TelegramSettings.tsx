@@ -10,6 +10,7 @@ type TelegramStatus = {
   botUsername: string | null;
   chatLinked: boolean;
   webhookUrl: string | null;
+  linkUrl?: string | null;
   issue: string | null;
 };
 
@@ -82,9 +83,9 @@ export function TelegramSettings() {
               </div>
             </div>
 
-            {!s.chatLinked && s.botUsername && (
+            {!s.chatLinked && s.linkUrl && (
               <a
-                href={`https://t.me/${s.botUsername}?start=link`}
+                href={s.linkUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="bg-hero flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-warm"
