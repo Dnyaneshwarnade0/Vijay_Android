@@ -13,19 +13,6 @@ export const PLAN_AMOUNT: Partial<Record<AppRole, number>> = {
   kathakar: 799,
 };
 
-export function licenseUnlockKey(userId: string) {
-  return `sv_license_ok_${userId}`;
-}
-
-export function isLicenseUnlocked(userId: string) {
-  if (typeof window === "undefined") return false;
-  try {
-    return window.localStorage.getItem(licenseUnlockKey(userId)) === "1";
-  } catch {
-    return false;
-  }
-}
-
 /**
  * Payment QR + license key screen.
  * Admin Telegram se one-time license key deta hai; redeem hote hi key dobara use nahi ho sakti.
@@ -74,9 +61,7 @@ export function LicenseGate({
       });
       if (error) throw new Error(error.message);
       if (data?.error) throw new Error(data.error);
-      try {
-        window.localStorage.setItem(licenseUnlockKey(profile.id), "1");
-      } catch {}
+      await qc.invalidateQueries({ queryKey: ["me", profile.id] });
       toast.success("License activate ho gayi! Yeh key ab use ho chuki hai.");
       onUnlocked();
     } catch (error) {
@@ -118,7 +103,7 @@ export function LicenseGate({
             </a>
 
             <p className="mt-4 text-[11px] leading-relaxed text-ink2">
-              Payment ke baad admin manually verify karega aur aapko License Key bhejega.
+              Payment verify hone ke baad admin se one-time License Key lein. Valid key enter karte hi account activate hoga.
             </p>
           </div>
         </div>
