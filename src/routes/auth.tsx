@@ -913,20 +913,6 @@ function AuthPage() {
                   </div>
 
 
-                  {/* Admin invitation key — optional */}
-                  <div>
-                    <div className="flex h-14 items-center gap-3 rounded-2xl border border-border bg-white px-4">
-                      <KeyRound className="h-5 w-5 shrink-0 text-ink3" />
-                      <input
-                        value={adminInviteKey}
-                        onChange={(e) => { const value = e.target.value.toUpperCase(); setAdminInviteKey(value); sessionStorage.setItem("adminInviteKey", value); }}
-                        placeholder="Admin invitation key (optional)"
-                        className="w-full bg-transparent text-base text-ink outline-none placeholder:text-ink3"
-                      />
-                    </div>
-                    <p className="mt-1.5 px-1 text-xs text-ink3">Sirf naye admin ko Telegram se mili one-time key yahan daalni hai.</p>
-                  </div>
-
                   {/* Password */}
                   <div>
                     <div className="flex h-14 items-center gap-3 rounded-2xl border border-maroon bg-white px-4 focus-within:ring-4 focus-within:ring-maroon/10">
