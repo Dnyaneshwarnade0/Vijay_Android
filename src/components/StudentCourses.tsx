@@ -117,16 +117,24 @@ function CourseDetail({ course, onBack }: { course: Course; onBack: () => void }
 
   async function checkKey() {
     const { toast } = await import("sonner");
-    const expected = (course.license_key ?? "").trim().toLowerCase();
-    if (!expected) {
-      toast.error("Admin ne abhi license key set nahi ki hai.");
+    if (!key.trim()) {
+      toast.error("License key enter karein.");
       return;
     }
-    if (key.trim().toLowerCase() === expected) {
+    try {
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      const accessToken = refreshed.session?.access_token;
+      if (!accessToken) throw new Error("Kripya sign in karke dobara try karein.");
+      const { data, error } = await supabase.functions.invoke("license-redeem", {
+        body: { key: key.trim(), courseId: course.id },
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
       setUnlocked(true);
-      toast.success("Course unlocked!");
-    } else {
-      toast.error("License key galat hai.");
+      toast.success("Course aur uske sub-courses unlock ho gaye. Yeh key ab use ho chuki hai.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "License key verify nahi hui.");
     }
   }
 
