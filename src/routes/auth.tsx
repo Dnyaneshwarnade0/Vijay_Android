@@ -155,6 +155,8 @@ function AuthPage() {
   async function startSessionOnThisDevice() {
     try {
       await activateDeviceSession();
+      const { error: signOutError } = await supabase.auth.signOut({ scope: "others" });
+      if (signOutError) throw signOutError;
     } catch (error) {
       await supabase.auth.signOut({ scope: "local" });
       throw new Error("Single-device security check fail ho gaya. Dobara login karein.");
