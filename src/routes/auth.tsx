@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
   Loader2,
@@ -31,7 +30,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { PhoneFrame, CATEGORIES, type Category } from "@/components/PhoneFrame";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import logoUrl from "@/assets/swar-vijay-logo.jpg";
-import { notifyAdminOfSignup } from "@/lib/telegram.functions";
 import type { AppRole } from "@/lib/session";
 
 /** 6 alag-alag boxes — non-technical user ke liye OTP bharna asaan. */
@@ -135,7 +133,6 @@ function AuthPage() {
   const [viewMode, setViewMode] = useState<Mode>(initialMode);
   const [busy, setBusy] = useState(false);
   const [showPass, setShowPass] = useState(false);
-  const notify = useServerFn(notifyAdminOfSignup);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -327,10 +324,12 @@ function AuthPage() {
         adminActivated = true;
       }
 
-      // ONLY AFTER EMAIL OTP VERIFIED -> Send request to Admin via Telegram!
+      // Artist / Kathakar ke verified signup ki request Telegram admin ko bhejein.
       try {
-        await notify({
-          data: verifiedUserId ? { userId: verifiedUserId, email: cleanEmail } : { email: cleanEmail },
+        const accessToken = verifyResult.data?.session?.access_token;
+        await supabase.functions.invoke("telegram-notify", {
+          body: {},
+          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
         });
       } catch (e) {
         console.error("telegram notify failed", e);
