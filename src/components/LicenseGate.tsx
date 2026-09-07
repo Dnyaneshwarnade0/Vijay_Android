@@ -2,13 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { KeyRound, ShieldCheck, Loader2, QrCode } from "lucide-react";
+import { KeyRound, ShieldCheck, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { Logo } from "@/components/Logo";
 import type { AppRole, Profile } from "@/lib/session";
-import upi599 from "@/assets/upi-599.jpg.asset.json";
-import upi799 from "@/assets/upi-799.jpg.asset.json";
 
 export const PLAN_AMOUNT: Partial<Record<AppRole, number>> = {
   artist: 599,
@@ -95,12 +93,15 @@ export function LicenseGate({
             <div className="text-xs font-bold uppercase tracking-widest text-ink3">Amount</div>
             <div className="font-display text-4xl font-black text-maroon">₹{amount}</div>
 
-            <div className="mx-auto mt-4 flex h-52 w-52 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-maroon/30 bg-white text-ink3">
-              <QrCode className="h-14 w-14 text-maroon/40" />
-              <span className="px-6 text-[11px] leading-snug">
-                Payment QR yahan lagegi (₹{amount})
-              </span>
-            </div>
+            <img
+              src={
+                role === "artist"
+                  ? "https://darkred-squid-510856.hostingersite.com/wp-content/uploads/2026/09/599Rs.jpg"
+                  : "https://darkred-squid-510856.hostingersite.com/wp-content/uploads/2026/09/799Rs.jpg"
+              }
+              alt={`₹${amount} payment QR code`}
+              className="mx-auto mt-4 h-52 w-52 rounded-2xl border-2 border-gold/40 bg-white object-contain p-1"
+            />
 
             <p className="mt-4 text-[11px] leading-relaxed text-ink2">
               Payment ke baad admin manually verify karega aur aapko License Key bhejega.
