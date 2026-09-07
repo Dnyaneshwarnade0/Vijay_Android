@@ -23,13 +23,25 @@ export const getTelegramStatus = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<TelegramStatus> => {
     await assertAdmin(context);
     const { ensureWebhook } = await import("./telegram.server");
-    const bot = await ensureWebhook(getRequestHeader("host"));
-    return {
-      connected: !!bot,
-      botUsername: bot?.botUsername ?? null,
-      chatLinked: !!bot?.adminChatId,
-      webhookUrl: bot?.webhookUrl ?? null,
-    };
+    try {
+      const bot = await ensureWebhook(getRequestHeader("host"));
+      return {
+        connected: !!bot,
+        botUsername: bot?.botUsername ?? null,
+        chatLinked: !!bot?.adminChatId,
+        webhookUrl: bot?.webhookUrl ?? null,
+      };
+    } catch (error) {
+      // A revoked/invalid saved token must not crash the admin screen.
+      // The admin can paste a replacement token in the disconnected state.
+      console.warn("Telegram status check failed:", error);
+      return {
+        connected: false,
+        botUsername: null,
+        chatLinked: false,
+        webhookUrl: null,
+      };
+    }
   });
 
 export const connectTelegramBot = createServerFn({ method: "POST" })
