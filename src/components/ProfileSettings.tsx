@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Camera, Fingerprint, KeyRound, Loader2, Save, UserCircle2, X } from "lucide-react";
+import { Camera, Fingerprint, KeyRound, Loader2, LogOut, Save, UserCircle2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { AppRole, Profile } from "@/lib/session";
@@ -25,6 +25,7 @@ export function ProfileSettings({
   const [newPassword, setNewPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
   const [addingPasskey, setAddingPasskey] = useState(false);
+  const [signingOutOthers, setSigningOutOthers] = useState(false);
 
   async function saveProfile() {
     if (name.trim().length < 3) return toast.error("Name mein kam se kam 3 letters hone chahiye.");
@@ -100,6 +101,19 @@ export function ProfileSettings({
     }
   }
 
+  async function signOutOtherDevices() {
+    setSigningOutOthers(true);
+    try {
+      const { error } = await supabase.auth.signOut({ scope: "others" });
+      if (error) throw error;
+      toast.success("Baaki devices se logout ho gaya. Ye device signed in rahega.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Baaki devices se logout nahi hua.");
+    } finally {
+      setSigningOutOthers(false);
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-surface px-4 pb-8 pt-5">
       <div className="mx-auto w-full max-w-md space-y-4">
@@ -143,6 +157,12 @@ export function ProfileSettings({
           <h2 className="text-lg">Fingerprint / Face Lock</h2>
           <p className="text-xs leading-relaxed text-ink2">Is device ke biometric lock se future sign-in secure hoga. Biometric data app ko kabhi nahi milta.</p>
           <button onClick={addPasskey} disabled={addingPasskey} className="flex w-full items-center justify-center gap-2 rounded-xl border border-gold/60 py-3 font-bold text-maroon disabled:opacity-60">{addingPasskey ? <Loader2 className="h-4 w-4 animate-spin" /> : <Fingerprint className="h-4 w-4" />} Fingerprint / Face Lock add karein</button>
+        </section>
+
+        <section className="card-sv space-y-2 p-4">
+          <h2 className="text-lg">Device security</h2>
+          <p className="text-xs leading-relaxed text-ink2">Agar kisi aur device par account open hai, to use logout kar sakte hain. Is device ka login bana rahega.</p>
+          <button onClick={signOutOtherDevices} disabled={signingOutOthers} className="flex w-full items-center justify-center gap-2 rounded-xl border border-maroon/40 py-3 font-bold text-maroon disabled:opacity-60">{signingOutOthers ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />} Baaki devices se logout</button>
         </section>
       </div>
     </div>
