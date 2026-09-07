@@ -7,8 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { Logo } from "@/components/Logo";
 import type { AppRole, Profile } from "@/lib/session";
-import upi599 from "@/assets/upi-599.jpg";
-import upi799 from "@/assets/upi-799.jpg";
+import upi599 from "@/assets/upi-599.jpg.asset.json";
+import upi799 from "@/assets/upi-799.jpg.asset.json";
 
 export const PLAN_AMOUNT: Partial<Record<AppRole, number>> = {
   artist: 599,
