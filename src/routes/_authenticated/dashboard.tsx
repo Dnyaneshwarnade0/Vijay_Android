@@ -72,7 +72,8 @@ function Dashboard() {
     );
   }
 
-  if (profile.status !== "approved") {
+  // Students do not require a separate approval step after account creation.
+  if (profile.status !== "approved" && role !== "student") {
     return <GateScreen status={profile.status} userId={profile.id} />;
   }
 
@@ -89,7 +90,6 @@ function Dashboard() {
               { key: "approvals", label: "Approvals", icon: ClipboardCheck },
               { key: "search", label: "Find artist", icon: Search },
               { key: "courses", label: "Courses", icon: BookOpen },
-              { key: "bot", label: "Bot", icon: Bot },
               { key: "telegram", label: "Telegram", icon: Send },
             ]}
           />
@@ -98,7 +98,6 @@ function Dashboard() {
         {adminTab === "approvals" && <AdminDashboard meId={profile.id} />}
         {adminTab === "search" && <AvailabilitySearch />}
         {adminTab === "courses" && <CourseManager />}
-        {adminTab === "bot" && <ArtistBot />}
         {adminTab === "telegram" && <TelegramSettings />}
       </AppShell>
     );
