@@ -1,10 +1,11 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { HelpCircle, LogOut, X } from "lucide-react";
+import { HelpCircle, LogOut, UserCog, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { Logo } from "@/components/Logo";
+import { ProfileSettings } from "@/components/ProfileSettings";
 import type { AppRole, Profile } from "@/lib/session";
 import { roleLabel } from "@/lib/session";
 
@@ -47,6 +48,7 @@ export function AppShell({
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [helpOpen, setHelpOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   async function signOut() {
     if (!window.confirm("Kya aap sach me logout karna chahte hain?")) return;
@@ -61,7 +63,7 @@ export function AppShell({
       <header className="bg-darkgrad sticky top-0 z-10">
         <div className="flex items-center justify-between gap-3 px-4 py-3">
           <div className="flex min-w-0 items-center gap-2.5">
-            <Logo className="h-9 w-9" />
+            {profile.avatar_url ? <img src={profile.avatar_url} alt="" className="h-9 w-9 rounded-xl object-cover" /> : <Logo className="h-9 w-9" />}
             <div className="min-w-0 leading-tight">
               <p className="truncate text-sm font-semibold text-warm">
                 {profile.full_name || profile.email}
@@ -70,6 +72,13 @@ export function AppShell({
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
+            <button
+              onClick={() => setProfileOpen(true)}
+              aria-label="Profile settings"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-gold/50 text-gold2"
+            >
+              <UserCog className="h-4 w-4" />
+            </button>
             <button
               onClick={() => setHelpOpen(true)}
               aria-label="Madad / Help"
@@ -91,6 +100,8 @@ export function AppShell({
       <main className="flex-1 space-y-4 px-4 pb-6 pt-4">{children}</main>
 
       {nav}
+
+      {profileOpen && <ProfileSettings profile={profile} role={role} onClose={() => setProfileOpen(false)} onUpdated={() => { queryClient.invalidateQueries({ queryKey: ["me", profile.id] }); }} />}
 
       {helpOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-6">
