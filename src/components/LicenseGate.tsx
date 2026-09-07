@@ -28,7 +28,7 @@ export function isLicenseUnlocked(userId: string) {
 
 /**
  * Payment QR + license key screen.
- * Admin payment manually verify karke license key deta hai; key sahi hone par hi app khulta hai.
+ * Admin Telegram se one-time license key deta hai; redeem hote hi key dobara use nahi ho sakti.
  */
 export function LicenseGate({
   profile,
@@ -56,7 +56,7 @@ export function LicenseGate({
     navigate({ to: "/auth", search: { mode: "login" }, replace: true });
   }
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     const entered = licenseKey.trim();
     if (entered.length < 4) {
@@ -64,23 +64,26 @@ export function LicenseGate({
       return;
     }
     setBusy(true);
-    const stored = (profile.license_key ?? "").trim();
-    if (!stored) {
-      setBusy(false);
-      toast.error("Admin ne abhi tak aapki payment approve karke License Key nahi di hai. Thodi der baad koshish karein.");
-      return;
-    }
-    if (stored.toLowerCase() !== entered.toLowerCase()) {
-      setBusy(false);
-      toast.error("License Key galat hai. Admin se mili key dobara check karein.");
-      return;
-    }
     try {
-      window.localStorage.setItem(licenseUnlockKey(profile.id), "1");
-    } catch {}
-    setBusy(false);
-    toast.success("License activate ho gayi! App khul raha hai…");
-    onUnlocked();
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      const accessToken = refreshed.session?.access_token;
+      if (!accessToken) throw new Error("Kripya sign in karke dobara try karein.");
+      const { data, error } = await supabase.functions.invoke("license-redeem", {
+        body: { key: entered },
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+      try {
+        window.localStorage.setItem(licenseUnlockKey(profile.id), "1");
+      } catch {}
+      toast.success("License activate ho gayi! Yeh key ab use ho chuki hai.");
+      onUnlocked();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "License verify nahi hui.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
