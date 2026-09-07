@@ -35,7 +35,7 @@ export async function callTelegram<T = unknown>(
 
 /** Public https base URL that Telegram can reach for this project. */
 export function publicBaseUrl(host: string | undefined): string {
-  const projectId = "be61fcd1-6202-412c-a763-2a1b9f751882";
+  const projectId = "ef7d5f05-e00d-4d52-bf0c-55819d145f92";
   const fallback = `https://project--${projectId}-dev.lovable.app`;
   if (!host) return fallback;
   if (host.startsWith("localhost") || host.startsWith("127.0.0.1")) return fallback;
