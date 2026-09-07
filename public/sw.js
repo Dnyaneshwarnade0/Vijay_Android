@@ -1,34 +1,30 @@
-const CACHE_NAME = "dnyanrajgurukul-cache-v1";
+const CACHE_NAME = "swar-vijay-static-v2";
+const STATIC_DESTINATIONS = new Set(["script", "style", "font", "image"]);
 
-self.addEventListener("install", (event) => {
-  self.skipWaiting();
-});
+self.addEventListener("install", () => self.skipWaiting());
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
-      )
-    )
+    caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
   );
   self.clients.claim();
 });
 
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") return;
+  const request = event.request;
+  const url = new URL(request.url);
+  // Account data, API calls and navigation pages always use the network and are never stored.
+  if (request.method !== "GET" || url.origin !== self.location.origin || !STATIC_DESTINATIONS.has(request.destination)) return;
 
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        const responseClone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseClone);
-        });
+    caches.match(request).then((cached) =>
+      cached ||
+      fetch(request).then((response) => {
+        if (response.ok && response.type === "basic") {
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
+        }
         return response;
       })
-      .catch(() => caches.match(event.request))
+    )
   );
 });
