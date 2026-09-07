@@ -454,7 +454,7 @@ function AuthPage() {
               {/* Email */}
               <div>
                 <div className={`flex h-14 items-center gap-3 rounded-2xl border bg-white px-4 ${
-                  email && !isValidEmail(email) ? "border-red-500 ring-2 ring-red-100" : "border-border"
+                  email && !isValidEmail(email) && !isValidUsername(email) ? "border-red-500 ring-2 ring-red-100" : "border-border"
                 }`}>
                   <Mail className="h-5 w-5 shrink-0 text-ink3" />
                   <input
@@ -466,9 +466,9 @@ function AuthPage() {
                     className="w-full bg-transparent text-base text-ink outline-none placeholder:text-ink3"
                   />
                 </div>
-                {email && !isValidEmail(email) && (
+                {email && !isValidEmail(email) && !isValidUsername(email) && (
                   <p className="mt-1 text-xs text-red-500 flex items-center gap-1 font-medium">
-                    <AlertCircle className="h-3.5 w-3.5" /> Sahi email enter karein (e.g. name@domain.com)
+                    <AlertCircle className="h-3.5 w-3.5" /> Username mein 3–30 letters, numbers ya underscore use karein
                   </p>
                 )}
               </div>
