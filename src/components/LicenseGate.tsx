@@ -103,11 +103,11 @@ export function LicenseGate({
             <img
               src={
                 role === "artist"
-                  ? "https://darkred-squid-510856.hostingersite.com/wp-content/uploads/2026/09/599Rs.jpg"
-                  : "https://darkred-squid-510856.hostingersite.com/wp-content/uploads/2026/09/799Rs.jpg"
+                  ? "https://darkred-squid-510856.hostingersite.com/wp-content/uploads/2026/09/Artist-599Rs.png"
+                  : "https://darkred-squid-510856.hostingersite.com/wp-content/uploads/2026/09/Kathakar-799Rs.png"
               }
               alt={`₹${amount} payment QR code`}
-              className="mx-auto mt-4 h-52 w-52 rounded-2xl border-2 border-gold/40 bg-white object-contain p-1"
+              className="mx-auto mt-4 h-72 w-72 rounded-2xl border-2 border-gold/40 bg-white object-contain p-1"
             />
 
             <a
