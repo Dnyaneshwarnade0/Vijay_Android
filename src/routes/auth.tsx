@@ -31,6 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PhoneFrame, CATEGORIES, type Category } from "@/components/PhoneFrame";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import logoUrl from "@/assets/swar-vijay-logo.jpg";
+import { activateDeviceSession } from "@/lib/session";
 import type { AppRole } from "@/lib/session";
 
 /** 6 alag-alag boxes — non-technical user ke liye OTP bharna asaan. */
@@ -151,6 +152,15 @@ function AuthPage() {
   const [forgotStep, setForgotStep] = useState<1 | 2>(1);
   const [cooldown, setCooldown] = useState(0);
 
+  async function startSessionOnThisDevice() {
+    try {
+      await activateDeviceSession();
+    } catch (error) {
+      await supabase.auth.signOut({ scope: "local" });
+      throw new Error("Single-device security check fail ho gaya. Dobara login karein.");
+    }
+  }
+
   // Resend button ka 45 second cooldown — user bar-bar dabakar block na ho jaye.
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -183,6 +193,7 @@ function AuthPage() {
         password,
       });
       if (error) throw new Error(error.message);
+      await startSessionOnThisDevice();
       navigate({ to: "/dashboard" });
     } catch (err) {
       console.error("login error", err);
@@ -197,6 +208,7 @@ function AuthPage() {
     try {
       const { error } = await supabase.auth.signInWithPasskey();
       if (error) throw error;
+      await startSessionOnThisDevice();
       navigate({ to: "/dashboard" });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Fingerprint / Face Lock sign-in nahi hua.");
@@ -323,6 +335,7 @@ function AuthPage() {
       if (verifyResult.error) {
         throw new Error(verifyResult.error.message);
       }
+      await startSessionOnThisDevice();
 
       const verifiedUserId = verifyResult.data?.user?.id;
 
@@ -422,6 +435,7 @@ function AuthPage() {
         password: newPassword,
       });
       if (updateErr) throw new Error(updateErr.message);
+      await startSessionOnThisDevice();
 
       toast.success("Password badal gaya hai! Ab naye password se Login karein.");
       setViewMode("login");
