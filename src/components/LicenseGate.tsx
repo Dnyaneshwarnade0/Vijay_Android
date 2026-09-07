@@ -2,11 +2,13 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { KeyRound, QrCode, ShieldCheck, Loader2 } from "lucide-react";
+import { KeyRound, ShieldCheck, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { Logo } from "@/components/Logo";
 import type { AppRole, Profile } from "@/lib/session";
+import upi599 from "@/assets/upi-599.jpg";
+import upi799 from "@/assets/upi-799.jpg";
 
 export const PLAN_AMOUNT: Partial<Record<AppRole, number>> = {
   artist: 599,
