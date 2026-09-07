@@ -24,7 +24,8 @@ import {
   RefreshCw,
   CheckCircle2,
   AlertCircle,
-  GraduationCap
+  GraduationCap,
+  Fingerprint
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PhoneFrame, CATEGORIES, type Category } from "@/components/PhoneFrame";
@@ -186,6 +187,19 @@ function AuthPage() {
     } catch (err) {
       console.error("login error", err);
       toast.error(errMessage(err) ?? "Login failed. Credentials check karein.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handlePasskeyLogin() {
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.signInWithPasskey();
+      if (error) throw error;
+      navigate({ to: "/dashboard" });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Fingerprint / Face Lock sign-in nahi hua.");
     } finally {
       setBusy(false);
     }
@@ -537,6 +551,15 @@ function AuthPage() {
                 Login
               </button>
             </form>
+
+              <button
+                type="button"
+                onClick={handlePasskeyLogin}
+                disabled={busy}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-gold/60 bg-white py-3 text-sm font-bold text-maroon disabled:opacity-60"
+              >
+                <Fingerprint className="h-4 w-4" /> Fingerprint / Face Lock se Login
+              </button>
 
             {/* Simple help — non-technical users ke liye */}
             <div className="mt-6 flex items-start gap-2.5 rounded-2xl border border-bord2 bg-surf3 p-3.5">
