@@ -35,12 +35,20 @@ export function ProfileSettings({
       const updates: Record<string, string | null> = {
         full_name: name.trim(),
         phone: phone.trim() || null,
-        bio: bio.trim() || null,
-        updated_at: new Date().toISOString(),
       };
-      if (role === "artist") updates.category = category;
-      const { error } = await supabase.from("profiles").update(updates).eq("id", profile.id);
-      if (error) throw error;
+      if (role === "artist") {
+        updates.bio = bio.trim() || null;
+        updates.category = category;
+      }
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      const accessToken = refreshed.session?.access_token;
+      if (!accessToken) throw new Error("Kripya dobara login karein.");
+      const { data, error } = await supabase.functions.invoke("profile-update", {
+        body: updates,
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
       onUpdated();
       toast.success("Profile save ho gayi.");
     } catch (error) {
@@ -60,9 +68,16 @@ export function ProfileSettings({
       const path = `${profile.id}/avatar.${extension}`;
       const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
       if (uploadError) throw uploadError;
-      const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-      const { error: profileError } = await supabase.from("profiles").update({ avatar_url: `${data.publicUrl}?v=${Date.now()}`, updated_at: new Date().toISOString() }).eq("id", profile.id);
-      if (profileError) throw profileError;
+      const { data: publicUrl } = supabase.storage.from("avatars").getPublicUrl(path);
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      const accessToken = refreshed.session?.access_token;
+      if (!accessToken) throw new Error("Kripya dobara login karein.");
+      const { data, error } = await supabase.functions.invoke("profile-update", {
+        body: { avatar_url: `${publicUrl.publicUrl}?v=${Date.now()}` },
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
       onUpdated();
       toast.success("Profile photo update ho gayi.");
     } catch (error) {
