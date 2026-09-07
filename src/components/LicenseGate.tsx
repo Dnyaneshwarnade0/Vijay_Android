@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { KeyRound, ShieldCheck, Loader2 } from "lucide-react";
+import { KeyRound, ShieldCheck, Loader2, QrCode } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { Logo } from "@/components/Logo";
