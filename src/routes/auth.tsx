@@ -81,6 +81,14 @@ function isValidEmail(emailStr: string): boolean {
   return emailRegex.test(emailStr.trim());
 }
 
+function isValidUsername(username: string): boolean {
+  return /^[a-zA-Z0-9_]{3,30}$/.test(username.trim());
+}
+
+function usernameToInternalEmail(username: string): string {
+  return `${username.trim().toLowerCase()}@users.swarvijay.local`;
+}
+
 function isValidPhone(phoneStr: string): boolean {
   const cleanPhone = phoneStr.replace(/[\s\-\+\(\)]/g, "");
   const phoneRegex = /^(?:91)?[6-9]\d{9}$/;
@@ -153,8 +161,15 @@ function AuthPage() {
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    if (!isValidEmail(email)) {
-      toast.error("Kripya sahi Email Address enter karein (e.g. rahul@gmail.com)");
+    const loginIdentifier = email.trim().toLowerCase();
+    const loginEmail = isValidEmail(loginIdentifier)
+      ? loginIdentifier
+      : isValidUsername(loginIdentifier)
+        ? usernameToInternalEmail(loginIdentifier)
+        : null;
+
+    if (!loginEmail) {
+      toast.error("Kripya valid username enter karein.");
       return;
     }
     if (password.length < 6) {
@@ -165,7 +180,7 @@ function AuthPage() {
     setBusy(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: loginEmail,
         password,
       });
       if (error) throw new Error(error.message);
@@ -443,11 +458,11 @@ function AuthPage() {
                 }`}>
                   <Mail className="h-5 w-5 shrink-0 text-ink3" />
                   <input
-                    type="email"
+                    type="text"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="rahul.patil@gmail.com"
+                    placeholder="Username"
                     className="w-full bg-transparent text-base text-ink outline-none placeholder:text-ink3"
                   />
                 </div>
