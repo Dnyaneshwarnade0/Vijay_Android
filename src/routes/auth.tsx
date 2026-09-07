@@ -246,12 +246,11 @@ function AuthPage() {
         throw new Error(error.message);
       }
 
-      // Empty identities = user exists but email NOT yet confirmed → resend OTP
+      // Supabase deliberately obfuscates existing users. Never claim an OTP was sent
+      // when no new account was created; guide the person to the appropriate next step.
       if (signUpData.user?.identities?.length === 0) {
-        await supabase.auth.resend({ type: "signup", email: email.trim() });
-        toast.info("Aapka account pehle se hai lekin confirm nahi hua. Naya OTP aapke email par bhej diya gaya.");
-        setViewMode("verify");
-        setBusy(false);
+        toast.info("Is email se account pehle se bana hua hai. Login karein; password yaad nahi hai to Forgot password use karein.");
+        setViewMode("login");
         return;
       }
 
