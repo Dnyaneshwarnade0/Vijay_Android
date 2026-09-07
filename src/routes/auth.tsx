@@ -10,7 +10,6 @@ import {
   EyeOff,
   UserRound,
   Phone,
-  ShieldCheck,
   HelpCircle,
   LogIn,
   ChevronLeft,
@@ -113,7 +112,6 @@ const roles: { value: AppRole; label: string; mr: string; hint: string; icon: Re
   { value: "student", label: "Student", mr: "विद्यार्थी", hint: "Sangeet seekhein", icon: GraduationCap },
   { value: "artist", label: "Artist", mr: "कलाकार", hint: "Apni khaali dates select karein", icon: Music },
   { value: "kathakar", label: "Kathakar", mr: "कथाकार", hint: "Available artist dhundein", icon: Users },
-  { value: "admin", label: "Admin", mr: "प्रशासक", hint: "Seedha login karein", icon: ShieldCheck },
 ];
 
 const categoryIcons: Record<string, React.ElementType> = {
