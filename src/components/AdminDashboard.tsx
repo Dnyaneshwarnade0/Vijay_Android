@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, ShieldX, X } from "lucide-react";
+import { Check, Loader2, ShieldX, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SectionCard, StatusPill } from "@/components/AppShell";
 import type { AccountStatus, AppRole, Profile } from "@/lib/session";
@@ -30,7 +30,8 @@ const FILTERS: { key: AccountStatus | "all"; label: string }[] = [
 
 export function AdminDashboard({ meId }: { meId: string }) {
   const qc = useQueryClient();
-  const [filter, setFilter] = useState<AccountStatus | "all">("pending");
+  const [filter, setFilter] = useState<AccountStatus | "all">("all");
+  const [roleFilter, setRoleFilter] = useState<AppRole | "all">("all");
   const { data = [], isLoading } = useQuery({ queryKey: ["admin-users"], queryFn: loadUsers });
 
   const update = useMutation({
@@ -48,12 +49,37 @@ export function AdminDashboard({ meId }: { meId: string }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const rows = data.filter((r) => r.id !== meId && (filter === "all" || r.status === filter));
+  const remove = useMutation({
+    mutationFn: async (userId: string) => {
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      const accessToken = refreshed.session?.access_token;
+      if (!accessToken) throw new Error("Kripya dobara login karein.");
+      const { data: result, error } = await supabase.functions.invoke("admin-users", {
+        body: { action: "delete", userId },
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (error) throw new Error(error.message);
+      if (result?.error) throw new Error(result.error);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      toast.success("User aur uski saari related details delete ho gayi.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const rows = data.filter(
+    (r) =>
+      r.id !== meId &&
+      r.role !== "admin" &&
+      (filter === "all" || r.status === filter) &&
+      (roleFilter === "all" || r.role === roleFilter),
+  );
   const pendingCount = data.filter((r) => r.id !== meId && r.status === "pending").length;
 
   return (
     <SectionCard
-      title="Approvals"
+      title="Users & Approvals"
       subtitle={`${pendingCount} request${pendingCount === 1 ? "" : "s"} pending`}
     >
       <div className="mb-4 flex gap-1.5 overflow-x-auto pb-1">
@@ -68,6 +94,25 @@ export function AdminDashboard({ meId }: { meId: string }) {
             }`}
           >
             {f.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="mb-4 grid grid-cols-4 gap-1.5">
+        {([
+          ["all", "All users"],
+          ["student", "Student"],
+          ["artist", "Artist"],
+          ["kathakar", "Kathakar"],
+        ] as const).map(([value, label]) => (
+          <button
+            key={value}
+            onClick={() => setRoleFilter(value)}
+            className={`rounded-xl border px-2 py-2 text-[11px] font-semibold ${
+              roleFilter === value ? "border-maroon bg-maroon text-white" : "border-border bg-white text-ink2"
+            }`}
+          >
+            {label}
           </button>
         ))}
       </div>
@@ -120,6 +165,18 @@ export function AdminDashboard({ meId }: { meId: string }) {
                     <ShieldX className="h-4 w-4" /> Revoke
                   </button>
                 )}
+                <button
+                  disabled={remove.isPending}
+                  onClick={() => {
+                    if (window.confirm(`${r.full_name || r.email} ka account aur saari details permanently delete karein?`)) {
+                      remove.mutate(r.id);
+                    }
+                  }}
+                  className="flex items-center justify-center gap-1.5 rounded-xl border border-crimson/50 px-3 py-2.5 text-sm font-semibold text-crimson disabled:opacity-50"
+                >
+                  {remove.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                  Delete
+                </button>
               </div>
             </li>
           ))}
