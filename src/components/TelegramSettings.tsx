@@ -14,8 +14,17 @@ type TelegramStatus = {
 };
 
 async function telegramAdmin(action: "status" | "connect", token?: string): Promise<TelegramStatus> {
+  // Refresh before the protected request: an older browser tab can otherwise
+  // send an expired access token even though the user is still on the dashboard.
+  const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+  const accessToken = refreshed.session?.access_token;
+  if (refreshError || !accessToken) {
+    throw new Error("Aapka login session expire ho gaya hai. Kripya sign out karke dobara login karein.");
+  }
+
   const { data, error } = await supabase.functions.invoke("telegram-admin", {
     body: { action, ...(token ? { token } : {}) },
+    headers: { Authorization: `Bearer ${accessToken}` },
   });
   if (error) throw new Error(error.message);
   if (data?.error) throw new Error(data.error);
