@@ -141,7 +141,7 @@ function AuthPage() {
   const [phone, setPhone] = useState("");
   const [role, setRole] = useState<AppRole>("student");
   const [category, setCategory] = useState<Category>(CATEGORIES[0]);
-  const [adminInviteKey, setAdminInviteKey] = useState("");
+  const [adminInviteKey, setAdminInviteKey] = useState(() => typeof window === "undefined" ? "" : sessionStorage.getItem("adminInviteKey") ?? "");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [signupStep, setSignupStep] = useState(1);
 
@@ -252,7 +252,7 @@ function AuthPage() {
         return;
       }
 
-      toast.success("Account ban gaya! Aapke Email par 6-digit OTP Code bhej diya gaya hai.");
+      toast.success(adminInviteKey.trim() ? "Account ban gaya! OTP verify hote hi admin key activate hogi." : "Account ban gaya! Aapke Email par 6-digit OTP Code bhej diya gaya hai.");
       setViewMode("verify");
     } catch (err) {
       console.error("signup error", err);
@@ -322,6 +322,7 @@ function AuthPage() {
         });
         if (error || data?.error) throw new Error(data?.error ?? error?.message ?? "Admin key verify nahi hui.");
         adminActivated = true;
+        sessionStorage.removeItem("adminInviteKey");
       }
 
       // Artist / Kathakar ke verified signup ki request Telegram admin ko bhejein.
@@ -336,6 +337,10 @@ function AuthPage() {
       }
 
       toast.success(adminActivated ? "Email verified aur admin access activate ho gaya!" : "Email Verified!");
+      if (adminActivated) {
+        navigate({ to: "/dashboard" });
+        return;
+      }
       setViewMode("confirmed");
     } catch (err) {
       console.error("verify otp error", err);
@@ -655,6 +660,7 @@ function AuthPage() {
             <p className="mb-6 text-sm text-ink2">
               Humne <span className="font-bold text-maroon">{email}</span> par 6-digit code bheja hai.
               Wahi code niche bharein. (Inbox me na mile to Spam folder dekhein.)
+              {adminInviteKey.trim() && <><br /><span className="font-semibold text-maroon">Admin invitation key ready hai — OTP verify hote hi admin access activate hoga.</span></>}
             </p>
 
             <form onSubmit={handleVerifyOtp} className="space-y-4">
@@ -913,7 +919,7 @@ function AuthPage() {
                       <KeyRound className="h-5 w-5 shrink-0 text-ink3" />
                       <input
                         value={adminInviteKey}
-                        onChange={(e) => setAdminInviteKey(e.target.value.toUpperCase())}
+                        onChange={(e) => { const value = e.target.value.toUpperCase(); setAdminInviteKey(value); sessionStorage.setItem("adminInviteKey", value); }}
                         placeholder="Admin invitation key (optional)"
                         className="w-full bg-transparent text-base text-ink outline-none placeholder:text-ink3"
                       />
