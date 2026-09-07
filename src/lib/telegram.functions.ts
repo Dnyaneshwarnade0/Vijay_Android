@@ -16,6 +16,7 @@ export interface TelegramStatus {
   botUsername: string | null;
   chatLinked: boolean;
   webhookUrl: string | null;
+  issue: "invalid_token" | "webhook_error" | null;
 }
 
 export const getTelegramStatus = createServerFn({ method: "GET" })
@@ -30,16 +31,19 @@ export const getTelegramStatus = createServerFn({ method: "GET" })
         botUsername: bot?.botUsername ?? null,
         chatLinked: !!bot?.adminChatId,
         webhookUrl: bot?.webhookUrl ?? null,
+        issue: null,
       };
     } catch (error) {
       // A revoked/invalid saved token must not crash the admin screen.
       // The admin can paste a replacement token in the disconnected state.
       console.warn("Telegram status check failed:", error);
+      const message = error instanceof Error ? error.message : "";
       return {
         connected: false,
         botUsername: null,
         chatLinked: false,
         webhookUrl: null,
+        issue: /\b401\b|unauthorized|invalid token/i.test(message) ? "invalid_token" : "webhook_error",
       };
     }
   });
@@ -82,7 +86,7 @@ export const connectTelegramBot = createServerFn({ method: "POST" })
     );
     if (error) throw new Error(error.message);
 
-    return { connected: true, botUsername: me.username ?? null, chatLinked: false, webhookUrl: url };
+    return { connected: true, botUsername: me.username ?? null, chatLinked: false, webhookUrl: url, issue: null };
   });
 
 export const disconnectTelegramBot = createServerFn({ method: "POST" })
