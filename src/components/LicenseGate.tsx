@@ -44,6 +44,10 @@ export function LicenseGate({
   const [licenseKey, setLicenseKey] = useState("");
   const [busy, setBusy] = useState(false);
   const amount = PLAN_AMOUNT[role] ?? 599;
+  const upiUrl =
+    role === "artist"
+      ? "upi://pay?pa=vijaybodkhe2112-5@okaxis&pn=Vijay%20Classical%20Music&am=599.00&cu=INR&tn=Vijay%20Classical%20Music"
+      : "upi://pay?pa=vijaybodkhe2112-5@okaxis&pn=Vijay%20Classical%20Music&am=799.00&cu=INR&tn=Vijay%20Classical%20Music";
 
   async function signOut() {
     await qc.cancelQueries();
@@ -102,6 +106,13 @@ export function LicenseGate({
               alt={`₹${amount} payment QR code`}
               className="mx-auto mt-4 h-52 w-52 rounded-2xl border-2 border-gold/40 bg-white object-contain p-1"
             />
+
+            <a
+              href={upiUrl}
+              className="bg-hero mt-4 flex w-full items-center justify-center rounded-2xl py-3 text-sm font-bold text-warm shadow-[0_10px_22px_-12px_rgba(123,30,53,0.85)] transition hover:opacity-95"
+            >
+              Pay ₹{amount} via UPI / GPay
+            </a>
 
             <p className="mt-4 text-[11px] leading-relaxed text-ink2">
               Payment ke baad admin manually verify karega aur aapko License Key bhejega.
