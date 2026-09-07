@@ -14,16 +14,176 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      artist_availability: {
+        Row: {
+          artist_id: string
+          available_date: string
+          created_at: string
+          id: string
+          note: string | null
+        }
+        Insert: {
+          artist_id: string
+          available_date: string
+          created_at?: string
+          id?: string
+          note?: string | null
+        }
+        Update: {
+          artist_id?: string
+          available_date?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+        }
+        Relationships: []
+      }
+      bookings: {
+        Row: {
+          artist_id: string
+          booking_date: string
+          created_at: string
+          event_title: string | null
+          id: string
+          kathakar_id: string
+          location: string | null
+          notes: string | null
+          status: string
+        }
+        Insert: {
+          artist_id: string
+          booking_date: string
+          created_at?: string
+          event_title?: string | null
+          id?: string
+          kathakar_id: string
+          location?: string | null
+          notes?: string | null
+          status?: string
+        }
+        Update: {
+          artist_id?: string
+          booking_date?: string
+          created_at?: string
+          event_title?: string | null
+          id?: string
+          kathakar_id?: string
+          location?: string | null
+          notes?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          bio: string | null
+          category: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          license_key: string | null
+          phone: string | null
+          status: Database["public"]["Enums"]["account_status"]
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          category?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id: string
+          license_key?: string | null
+          phone?: string | null
+          status?: Database["public"]["Enums"]["account_status"]
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          category?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          license_key?: string | null
+          phone?: string | null
+          status?: Database["public"]["Enums"]["account_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      telegram_settings: {
+        Row: {
+          admin_chat_id: string | null
+          bot_token: string | null
+          bot_username: string | null
+          created_at: string
+          id: string
+          updated_at: string
+          webhook_secret: string | null
+          webhook_url: string | null
+        }
+        Insert: {
+          admin_chat_id?: string | null
+          bot_token?: string | null
+          bot_username?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          webhook_secret?: string | null
+          webhook_url?: string | null
+        }
+        Update: {
+          admin_chat_id?: string | null
+          bot_token?: string | null
+          bot_username?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          webhook_secret?: string | null
+          webhook_url?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_approved: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      account_status: "pending" | "approved" | "rejected" | "revoked"
+      app_role: "admin" | "artist" | "kathakar"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +310,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      account_status: ["pending", "approved", "rejected", "revoked"],
+      app_role: ["admin", "artist", "kathakar"],
+    },
   },
 } as const
