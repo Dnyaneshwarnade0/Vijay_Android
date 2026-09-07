@@ -15,6 +15,7 @@ export interface Profile {
   bio: string | null;
   category: string | null;
   status: AccountStatus;
+  license_activated_at: string | null;
   license_key: string | null;
   avatar_url: string | null;
   created_at: string;
