@@ -294,6 +294,10 @@ function AuthPage() {
         });
       }
 
+      if (verifyResult.error) {
+        throw new Error(verifyResult.error.message);
+      }
+
       const verifiedUserId = verifyResult.data?.user?.id;
 
       // ONLY AFTER EMAIL OTP VERIFIED -> Send request to Admin via Telegram!
