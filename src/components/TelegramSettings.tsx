@@ -17,7 +17,14 @@ export function TelegramSettings() {
   const disconnect = useServerFn(disconnectTelegramBot);
   const [token, setToken] = useState("");
 
-  const q = useQuery({ queryKey: ["telegram-status"], queryFn: () => status(), refetchInterval: 6000 });
+  // Status ko sirf screen khulne aur save/remove ke baad check karein.
+  // Invalid token ke case mein background retry/refetch se page blink nahi hona chahiye.
+  const q = useQuery({
+    queryKey: ["telegram-status"],
+    queryFn: () => status(),
+    refetchInterval: false,
+    retry: false,
+  });
 
   const save = useMutation({
     mutationFn: (t: string) => connect({ data: { token: t } }),
