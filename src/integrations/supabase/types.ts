@@ -139,6 +139,7 @@ export type Database = {
           id: string
           is_published: boolean
           level: string
+          license_activated_at: string | null
           license_key: string | null
           price: number
           qr_image_url: string | null
@@ -155,6 +156,7 @@ export type Database = {
           id?: string
           is_published?: boolean
           level?: string
+          license_activated_at?: string | null
           license_key?: string | null
           price?: number
           qr_image_url?: string | null
