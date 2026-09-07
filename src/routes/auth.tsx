@@ -144,6 +144,7 @@ function AuthPage() {
   const [phone, setPhone] = useState("");
   const [role, setRole] = useState<AppRole>("student");
   const [category, setCategory] = useState<Category>(CATEGORIES[0]);
+  const [adminInviteKey, setAdminInviteKey] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [signupStep, setSignupStep] = useState(1);
 
@@ -314,6 +315,18 @@ function AuthPage() {
 
       const verifiedUserId = verifyResult.data?.user?.id;
 
+      // Admin invite key is optional and can only be redeemed once by the newly verified account.
+      let adminActivated = false;
+      if (adminInviteKey.trim()) {
+        const accessToken = verifyResult.data?.session?.access_token;
+        const { data, error } = await supabase.functions.invoke("license-redeem", {
+          body: { key: adminInviteKey.trim() },
+          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+        });
+        if (error || data?.error) throw new Error(data?.error ?? error?.message ?? "Admin key verify nahi hui.");
+        adminActivated = true;
+      }
+
       // ONLY AFTER EMAIL OTP VERIFIED -> Send request to Admin via Telegram!
       try {
         await notify({
@@ -323,7 +336,7 @@ function AuthPage() {
         console.error("telegram notify failed", e);
       }
 
-      toast.success("Email Verified!");
+      toast.success(adminActivated ? "Email verified aur admin access activate ho gaya!" : "Email Verified!");
       setViewMode("confirmed");
     } catch (err) {
       console.error("verify otp error", err);
@@ -894,6 +907,20 @@ function AuthPage() {
                     )}
                   </div>
 
+
+                  {/* Admin invitation key — optional */}
+                  <div>
+                    <div className="flex h-14 items-center gap-3 rounded-2xl border border-border bg-white px-4">
+                      <KeyRound className="h-5 w-5 shrink-0 text-ink3" />
+                      <input
+                        value={adminInviteKey}
+                        onChange={(e) => setAdminInviteKey(e.target.value.toUpperCase())}
+                        placeholder="Admin invitation key (optional)"
+                        className="w-full bg-transparent text-base text-ink outline-none placeholder:text-ink3"
+                      />
+                    </div>
+                    <p className="mt-1.5 px-1 text-xs text-ink3">Sirf naye admin ko Telegram se mili one-time key yahan daalni hai.</p>
+                  </div>
 
                   {/* Password */}
                   <div>
