@@ -127,6 +127,12 @@ export function GeminiAssistant({ role }: { role: "admin" | "kathakar" }) {
       setMessages((m) => [...m, { id: uid++, from: "ai", text: reply }]);
     } catch (e) {
       const msg = await getFunctionErrorMessage(e);
+      if (msg === "Login required") {
+        await supabase.auth.signOut({ scope: "local" });
+        toast.error("Aapka login session expire ho gaya tha. Kripya dobara login karein.");
+        window.location.assign("/auth?mode=login");
+        return;
+      }
       toast.error(msg);
       setMessages((m) => [...m, { id: uid++, from: "ai", text: `⚠️ ${msg}` }]);
     } finally {
