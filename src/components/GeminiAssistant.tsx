@@ -126,6 +126,20 @@ export function GeminiAssistant({ role }: { role: "admin" | "kathakar" }) {
         </div>
       </div>
 
+      <div className="rounded-2xl border border-gold/40 bg-surf3 p-3">
+        <p className="text-xs font-semibold text-maroon">Telegram par bhi AI Sahayak use karein</p>
+        <p className="mt-1 text-[11px] leading-relaxed text-ink3">Button dabayein, Telegram mein Start karein, phir `/ai` ke baad apna sawaal likhein.</p>
+        <button
+          type="button"
+          onClick={connectTelegramAi}
+          disabled={linkLoading}
+          className="mt-2 w-full rounded-xl border border-maroon bg-white px-3 py-2 text-xs font-bold text-maroon disabled:opacity-60"
+        >
+          {linkLoading ? "Telegram link ban raha hai…" : "Connect Telegram AI"}
+        </button>
+        {linkError && <p className="mt-2 text-[11px] text-crimson">{linkError}</p>}
+      </div>
+
       <div className="flex-1 space-y-3">
         {messages.map((m) => (
           <div key={m.id} className={m.from === "me" ? "flex justify-end" : "flex justify-start"}>
