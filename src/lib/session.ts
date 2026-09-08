@@ -79,46 +79,67 @@ export function useSession() {
   useEffect(() => {
     if (!session?.user.id) return;
 
-    const deviceId = getDeviceId();
-    let signedOut = false;
-    const checkActiveDevice = async () => {
-      if (signedOut) return;
-      // active_device_sessions abhi generated types me nahi hai.
-      const client = supabase as unknown as {
-        from: (table: string) => {
-          select: (cols: string) => {
-            eq: (col: string, val: string) => {
-              maybeSingle: () => Promise<{ data: { device_id: string } | null; error: unknown }>;
+    let cancelled = false;
+    let cleanup = () => {};
+
+    void (async () => {
+      const { data: roleRow } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+
+      // Admins may use the dashboard from more than one device.
+      if (cancelled || roleRow?.role === "admin") return;
+
+      const deviceId = getDeviceId();
+      let signedOut = false;
+      const checkActiveDevice = async () => {
+        if (signedOut || cancelled) return;
+        // active_device_sessions abhi generated types me nahi hai.
+        const client = supabase as unknown as {
+          from: (table: string) => {
+            select: (cols: string) => {
+              eq: (col: string, val: string) => {
+                maybeSingle: () => Promise<{ data: { device_id: string } | null; error: unknown }>;
+              };
             };
           };
         };
+        const { data, error } = await client
+          .from("active_device_sessions")
+          .select("device_id")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+        if (!error && data && data.device_id !== deviceId) {
+          signedOut = true;
+          await supabase.auth.signOut({ scope: "local" });
+          toast.error("Aap is device se logout ho gaye hain, kyunki account doosre device par login hua hai.");
+        }
       };
-      const { data, error } = await client
-        .from("active_device_sessions")
-        .select("device_id")
-        .eq("user_id", session.user.id)
-        .maybeSingle();
-      if (!error && data && data.device_id !== deviceId) {
-        signedOut = true;
-        await supabase.auth.signOut({ scope: "local" });
-        toast.error("Aap is device se logout ho gaye hain, kyunki account doosre device par login hua hai.");
-      }
-    };
 
-    void checkActiveDevice();
-    const channel = supabase
-      .channel(`single-device-${session.user.id}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "active_device_sessions", filter: `user_id=eq.${session.user.id}` },
-        () => void checkActiveDevice(),
-      )
-      .subscribe();
-    const interval = window.setInterval(() => void checkActiveDevice(), 5000);
+      await checkActiveDevice();
+      if (cancelled || signedOut) return;
+
+      const channel = supabase
+        .channel(`single-device-${session.user.id}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "active_device_sessions", filter: `user_id=eq.${session.user.id}` },
+          () => void checkActiveDevice(),
+        )
+        .subscribe();
+      const interval = window.setInterval(() => void checkActiveDevice(), 5000);
+
+      cleanup = () => {
+        window.clearInterval(interval);
+        void supabase.removeChannel(channel);
+      };
+    })();
 
     return () => {
-      window.clearInterval(interval);
-      void supabase.removeChannel(channel);
+      cancelled = true;
+      cleanup();
     };
   }, [session?.user.id]);
 
