@@ -13,16 +13,16 @@ interface Msg {
 
 const WELCOME: Record<"admin" | "kathakar", string> = {
   admin:
-    "नमस्कार Admin! Main aapka AI Sahayak hoon. Approvals, license keys, artist management ya app ke kisi bhi kaam me madad ke liye sawaal poochhiye.",
+    "नमस्कार Admin! Main aapka AI Sahayak hoon. License keys, users, artists, courses, Telegram ya app ke kisi bhi kaam me madad ke liye sawaal poochhiye.",
   kathakar:
     "नमस्कार! Main aapka AI Sahayak hoon. Programs, artist booking, planning ya kirtan-related sawaal Hindi ya Hinglish me poochh sakte hain.",
 };
 
 const STARTERS: Record<"admin" | "kathakar", string[]> = {
   admin: [
-    "Naye users ko approve karne ka sahi tarika kya hai?",
-    "License key dene se pehle kya check karun?",
-    "Artists ko app use karna kaise samjhaun?",
+    "Naye user ka license key kaise generate karun?",
+    "Users aur artists ko manage karne ka tarika kya hai?",
+    "Courses aur Telegram bot kaise use hote hain?",
   ],
   kathakar: [
     "Kirtan program ki planning kaise karun?",
@@ -39,11 +39,43 @@ export function GeminiAssistant({ role }: { role: "admin" | "kathakar" }) {
   ]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [linkLoading, setLinkLoading] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, busy]);
+
+  async function connectTelegramAi() {
+    setLinkLoading(true);
+    setLinkError(null);
+    try {
+      const { data: sessionData } = await supabase.auth.refreshSession();
+      const token =
+        sessionData.session?.access_token ??
+        (await supabase.auth.getSession()).data.session?.access_token;
+      if (!token) throw new Error("Aapka session expire ho gaya hai. Dobara login karein.");
+
+      const { data, error } = await supabase.functions.invoke("telegram-ai-link", {
+        body: {},
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (error) throw error;
+
+      const url = (data as { link?: string; url?: string } | null)?.link ??
+        (data as { url?: string } | null)?.url;
+      if (!url || typeof url !== "string") throw new Error("Telegram link nahi mila. Thodi der baad try karein.");
+
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Telegram connect fail ho gaya. Dobara koshish karein.";
+      setLinkError(msg);
+      toast.error(msg);
+    } finally {
+      setLinkLoading(false);
+    }
+  }
 
   async function ask(text: string) {
     const q = text.trim().slice(0, MAX_LEN);
