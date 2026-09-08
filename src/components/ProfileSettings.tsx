@@ -28,8 +28,8 @@ export function ProfileSettings({
   const [signingOutOthers, setSigningOutOthers] = useState(false);
 
   async function saveProfile() {
-    if (name.trim().length < 3) return toast.error("Name mein kam se kam 3 letters hone chahiye.");
-    if (phone.trim() && !/^(?:\+?91)?[6-9]\d{9}$/.test(phone.replace(/[\s-]/g, ""))) return toast.error("Sahi mobile number enter karein.");
+    if (name.trim().length < 3) { toast.error("Name mein kam se kam 3 letters hone chahiye."); return; }
+    if (phone.trim() && !/^(?:\+?91)?[6-9]\d{9}$/.test(phone.replace(/[\s-]/g, ""))) { toast.error("Sahi mobile number enter karein."); return; }
     setSaving(true);
     try {
       const updates: Record<string, string | null> = {
@@ -37,8 +37,8 @@ export function ProfileSettings({
         phone: phone.trim() || null,
       };
       if (role === "artist") {
-        updates.bio = bio.trim() || null;
-        updates.category = category;
+        updates['bio'] = bio.trim() || null;
+        updates['category'] = category;
       }
       const { data: refreshed } = await supabase.auth.refreshSession();
       const accessToken = refreshed.session?.access_token;
@@ -60,8 +60,8 @@ export function ProfileSettings({
 
   async function uploadPhoto(file?: File) {
     if (!file) return;
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) return toast.error("JPG, PNG ya WEBP photo select karein.");
-    if (file.size > 2 * 1024 * 1024) return toast.error("Photo 2 MB se chhoti honi chahiye.");
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) { toast.error("JPG, PNG ya WEBP photo select karein."); return; }
+    if (file.size > 2 * 1024 * 1024) { toast.error("Photo 2 MB se chhoti honi chahiye."); return; }
     setSaving(true);
     try {
       const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
@@ -88,7 +88,7 @@ export function ProfileSettings({
   }
 
   async function changePassword() {
-    if (currentPassword.length < 6 || newPassword.length < 8) return toast.error("Current password aur 8-character naya password enter karein.");
+    if (currentPassword.length < 6 || newPassword.length < 8) { toast.error("Current password aur 8-character naya password enter karein."); return; }
     setChangingPassword(true);
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword, current_password: currentPassword });
