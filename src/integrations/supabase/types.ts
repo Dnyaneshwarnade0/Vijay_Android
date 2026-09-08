@@ -14,24 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      active_device_sessions: {
-        Row: {
-          device_id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          device_id: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          device_id?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       artist_availability: {
         Row: {
           artist_id: string
@@ -139,7 +121,6 @@ export type Database = {
           id: string
           is_published: boolean
           level: string
-          license_activated_at: string | null
           license_key: string | null
           price: number
           qr_image_url: string | null
@@ -156,7 +137,6 @@ export type Database = {
           id?: string
           is_published?: boolean
           level?: string
-          license_activated_at?: string | null
           license_key?: string | null
           price?: number
           qr_image_url?: string | null
@@ -183,77 +163,8 @@ export type Database = {
         }
         Relationships: []
       }
-      license_keys: {
-        Row: {
-          course_id: string | null
-          created_at: string
-          created_by: string | null
-          expires_at: string | null
-          id: string
-          key: string
-          purpose: string
-          used_at: string | null
-          used_by: string | null
-          user_id: string | null
-        }
-        Insert: {
-          course_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          expires_at?: string | null
-          id?: string
-          key: string
-          purpose: string
-          used_at?: string | null
-          used_by?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          course_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          expires_at?: string | null
-          id?: string
-          key?: string
-          purpose?: string
-          used_at?: string | null
-          used_by?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "license_keys_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "courses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "license_keys_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "license_keys_used_by_fkey"
-            columns: ["used_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "license_keys_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
-          avatar_url: string | null
           bio: string | null
           category: string | null
           created_at: string
@@ -264,10 +175,8 @@ export type Database = {
           phone: string | null
           status: Database["public"]["Enums"]["account_status"]
           updated_at: string
-          username: string | null
         }
         Insert: {
-          avatar_url?: string | null
           bio?: string | null
           category?: string | null
           created_at?: string
@@ -278,10 +187,8 @@ export type Database = {
           phone?: string | null
           status?: Database["public"]["Enums"]["account_status"]
           updated_at?: string
-          username?: string | null
         }
         Update: {
-          avatar_url?: string | null
           bio?: string | null
           category?: string | null
           created_at?: string
@@ -292,88 +199,8 @@ export type Database = {
           phone?: string | null
           status?: Database["public"]["Enums"]["account_status"]
           updated_at?: string
-          username?: string | null
         }
         Relationships: []
-      }
-      telegram_admin_chats: {
-        Row: {
-          chat_id: string
-          created_at: string
-          user_id: string | null
-        }
-        Insert: {
-          chat_id: string
-          created_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          chat_id?: string
-          created_at?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "telegram_admin_chats_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      telegram_artist_search_state: {
-        Row: {
-          category: string
-          chat_id: string
-          start_date: string | null
-          updated_at: string
-        }
-        Insert: {
-          category: string
-          chat_id: string
-          start_date?: string | null
-          updated_at?: string
-        }
-        Update: {
-          category?: string
-          chat_id?: string
-          start_date?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      telegram_link_tokens: {
-        Row: {
-          created_at: string
-          expires_at: string
-          token: string
-          used_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          expires_at: string
-          token: string
-          used_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          expires_at?: string
-          token?: string
-          used_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "telegram_link_tokens_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       telegram_settings: {
         Row: {
