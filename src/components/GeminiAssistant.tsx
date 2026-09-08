@@ -33,6 +33,28 @@ const STARTERS: Record<"admin" | "kathakar", string[]> = {
 
 let uid = 0;
 
+function getFunctionErrorMessage(error: unknown) {
+  if (!(error instanceof Error)) return "Kuch galat ho gaya. Dobara koshish karein.";
+
+  const context = (error as Error & { context?: unknown }).context;
+  if (!(context instanceof Response)) return error.message;
+
+  return context
+    .clone()
+    .json()
+    .then((body: unknown) => {
+      const message =
+        body &&
+        typeof body === "object" &&
+        "error" in body &&
+        typeof (body as { error?: unknown }).error === "string"
+          ? (body as { error: string }).error
+          : error.message;
+      return message;
+    })
+    .catch(() => error.message);
+}
+
 export function GeminiAssistant({ role }: { role: "admin" | "kathakar" }) {
   const [messages, setMessages] = useState<Msg[]>([
     { id: uid++, from: "ai", text: WELCOME[role] },
@@ -69,7 +91,7 @@ export function GeminiAssistant({ role }: { role: "admin" | "kathakar" }) {
 
       window.open(url, "_blank", "noopener,noreferrer");
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Telegram connect fail ho gaya. Dobara koshish karein.";
+      const msg = await getFunctionErrorMessage(e);
       setLinkError(msg);
       toast.error(msg);
     } finally {
@@ -104,7 +126,7 @@ export function GeminiAssistant({ role }: { role: "admin" | "kathakar" }) {
 
       setMessages((m) => [...m, { id: uid++, from: "ai", text: reply }]);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Kuch galat ho gaya. Dobara koshish karein.";
+      const msg = await getFunctionErrorMessage(e);
       toast.error(msg);
       setMessages((m) => [...m, { id: uid++, from: "ai", text: `⚠️ ${msg}` }]);
     } finally {
