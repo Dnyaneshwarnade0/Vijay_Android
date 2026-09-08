@@ -1,4 +1,4 @@
-const CACHE_NAME = "swar-vijay-static-v2";
+const CACHE_NAME = "swar-vijay-static-v3";
 const STATIC_DESTINATIONS = new Set(["script", "style", "font", "image"]);
 
 self.addEventListener("install", () => self.skipWaiting());
