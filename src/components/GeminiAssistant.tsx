@@ -18,19 +18,6 @@ const WELCOME: Record<"admin" | "kathakar", string> = {
     "नमस्कार! Main aapka AI Sahayak hoon. Programs, artist booking, planning ya kirtan-related sawaal Hindi ya Hinglish me poochh sakte hain.",
 };
 
-const STARTERS: Record<"admin" | "kathakar", string[]> = {
-  admin: [
-    "Naye user ka license key kaise generate karun?",
-    "Users aur artists ko manage karne ka tarika kya hai?",
-    "Courses aur Telegram bot kaise use hote hain?",
-  ],
-  kathakar: [
-    "Kirtan program ki planning kaise karun?",
-    "Artist ko booking ke liye kya-kya batana chahiye?",
-    "Ek achhe kirtan ki rup-rekha bataiye",
-  ],
-};
-
 let uid = 0;
 
 function getFunctionErrorMessage(error: unknown) {
@@ -188,13 +175,6 @@ export function GeminiAssistant({ role }: { role: "admin" | "kathakar" }) {
         <div ref={endRef} />
       </div>
 
-      <div className="flex flex-wrap gap-1.5">
-        {STARTERS[role].map((s) => (
-          <button key={s} onClick={() => ask(s)} disabled={busy} className="chip-sv text-[11px]">
-            {s}
-          </button>
-        ))}
-      </div>
 
       <form
         className="sticky bottom-0 bg-background pb-1 pt-2"
