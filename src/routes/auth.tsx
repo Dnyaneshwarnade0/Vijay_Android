@@ -149,7 +149,7 @@ function AuthPage() {
 
   // OTP State
   const [otpCode, setOtpCode] = useState("");
-  const [forgotStep, setForgotStep] = useState<1 | 2>(1);
+  const [forgotStep, setForgotStep] = useState<1 | 2 | 3>(1);
   const [cooldown, setCooldown] = useState(0);
 
   async function startSessionOnThisDevice() {
@@ -402,48 +402,60 @@ function AuthPage() {
     }
   }
 
-  async function handleResetPasswordWithOtp(e: React.FormEvent) {
+  async function handleVerifyResetOtp(e: React.FormEvent) {
     e.preventDefault();
     if (otpCode.trim().length < 6) {
-      toast.error("Kripya pura OTP code enter karein (6 ya 8 digits)");
-      return;
-    }
-    if (newPassword.length < 6) {
-      toast.error("Naye password me minimum 6 characters hone chahiye");
+      toast.error("Kripya pura 6-digit OTP code enter karein.");
       return;
     }
     setBusy(true);
     try {
-      const cleanEmail = email.trim().toLowerCase();
-      const cleanToken = otpCode.trim();
-
-      let verifyErr = (await supabase.auth.verifyOtp({
-        email: cleanEmail,
-        token: cleanToken,
+      const { error } = await supabase.auth.verifyOtp({
+        email: email.trim().toLowerCase(),
+        token: otpCode.trim(),
         type: "recovery",
-      })).error;
-
-      if (verifyErr) {
-        verifyErr = (await supabase.auth.verifyOtp({
-          email: cleanEmail,
-          token: cleanToken,
-          type: "email",
-        })).error;
-      }
-
-      if (verifyErr) throw new Error(verifyErr.message);
-
-      const { error: updateErr } = await supabase.auth.updateUser({
-        password: newPassword,
       });
-      if (updateErr) throw new Error(updateErr.message);
-      await startSessionOnThisDevice();
-
-      toast.success("Password badal gaya hai! Ab naye password se Login karein.");
-      setViewMode("login");
+      if (error) throw error;
+      setForgotStep(3);
+      setNewPassword("");
+      toast.success("OTP verify ho gaya. Ab naya password set karein.");
     } catch (err) {
-      console.error("update password error", err);
-      toast.error(errMessage(err) ?? "Password update fail ho gaya");
+      toast.error(errMessage(err) ?? "Galat ya expired OTP hai. Naya code bhejein.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleSetNewPassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (newPassword.length < 8) {
+      toast.error("Naya password kam se kam 8 characters ka rakhein.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      await startSessionOnThisDevice();
+      toast.success("Naya password set ho gaya. App open ho raha hai.");
+      navigate({ to: "/dashboard" });
+    } catch (err) {
+      toast.error(errMessage(err) ?? "Password update fail ho gaya.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleResendResetOtp() {
+    if (!isValidEmail(email)) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+      if (error) throw error;
+      setOtpCode("");
+      toast.success("Naya reset OTP aapke email par bhej diya gaya.");
+    } catch (err) {
+      toast.error(errMessage(err) ?? "OTP resend fail ho gaya.");
     } finally {
       setBusy(false);
     }
@@ -601,8 +613,10 @@ function AuthPage() {
             <h2 className="font-display text-3xl font-black text-ink mb-1">Reset Password</h2>
             <p className="mb-6 text-sm text-ink2">
               {forgotStep === 1
-                ? "Apna registered email daalein password reset OTP bhejane ke liye."
-                : "Aapke email par aaya 6-digit OTP aur naya password enter karein."}
+                ? "Apna registered email daalein. Hum 6-digit reset OTP bhejenge."
+                : forgotStep === 2
+                  ? "Aapke email par aaya 6-digit OTP enter karke verify karein."
+                  : "OTP verify ho gaya. Ab apna naya password set karein."}
             </p>
 
             {forgotStep === 1 ? (
@@ -632,53 +646,28 @@ function AuthPage() {
                   Send Reset OTP Code
                 </button>
               </form>
-            ) : (
-              <form onSubmit={handleResetPasswordWithOtp} className="space-y-4">
+            ) : forgotStep === 2 ? (
+              <form onSubmit={handleVerifyResetOtp} className="space-y-4">
                 <div className="space-y-2">
-                  <p className="text-center text-xs font-semibold uppercase tracking-wide text-ink2">
-                    Email par aaya 6-digit code
-                  </p>
+                  <p className="text-center text-xs font-semibold uppercase tracking-wide text-ink2">Email par aaya 6-digit code</p>
                   <OtpBoxes value={otpCode} onChange={setOtpCode} />
                 </div>
-
+                <button type="submit" disabled={busy || otpCode.length < 6} className="bg-hero mt-2 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-base font-bold text-warm shadow-[0_12px_26px_-12px_rgba(123,30,53,0.85)] transition hover:opacity-95 disabled:opacity-60 cursor-pointer">
+                  {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />} Verify OTP
+                </button>
+                <button type="button" disabled={busy} onClick={handleResendResetOtp} className="flex w-full items-center justify-center gap-1.5 pt-2 text-xs font-semibold text-ink3 hover:text-maroon cursor-pointer disabled:opacity-50">
+                  <RefreshCw className="h-3.5 w-3.5" /> Code nahi mila? Dobara bhejein
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleSetNewPassword} className="space-y-4">
                 <div className="flex h-14 items-center gap-3 rounded-2xl border border-maroon bg-white px-4 focus-within:ring-4 focus-within:ring-maroon/10">
                   <Lock className="h-5 w-5 shrink-0 text-ink3" />
-                  <input
-                    type={showPass ? "text" : "password"}
-                    required
-                    minLength={6}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Naya Password (8+ akshar, ek capital + number)"
-                    className="w-full bg-transparent text-base text-ink outline-none placeholder:text-ink3"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPass(!showPass)}
-                    className="text-ink3 hover:text-ink cursor-pointer"
-                  >
-                    {showPass ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
+                  <input type={showPass ? "text" : "password"} required minLength={8} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Naya Password (minimum 8 akshar)" className="w-full bg-transparent text-base text-ink outline-none placeholder:text-ink3" />
+                  <button type="button" onClick={() => setShowPass(!showPass)} className="text-ink3 hover:text-ink cursor-pointer">{showPass ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</button>
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={busy}
-                  className="bg-hero mt-2 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-base font-bold text-warm shadow-[0_12px_26px_-12px_rgba(123,30,53,0.85)] transition hover:opacity-95 disabled:opacity-60 cursor-pointer"
-                >
-                  {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
-                  Update Password
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setOtpCode("");
-                    setForgotStep(1);
-                  }}
-                  className="flex w-full items-center justify-center gap-1.5 pt-2 text-xs font-semibold text-ink3 hover:text-maroon cursor-pointer"
-                >
-                  <RefreshCw className="h-3.5 w-3.5" /> Code nahi mila? Dobara bhejein
+                <button type="submit" disabled={busy} className="bg-hero mt-2 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-base font-bold text-warm shadow-[0_12px_26px_-12px_rgba(123,30,53,0.85)] transition hover:opacity-95 disabled:opacity-60 cursor-pointer">
+                  {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />} Set New Password
                 </button>
               </form>
             )}
