@@ -13,16 +13,16 @@ interface Msg {
 
 const WELCOME: Record<"admin" | "kathakar", string> = {
   admin:
-    "नमस्कार Admin! Main aapka AI Sahayak hoon. Approvals, license keys, artist management ya app ke kisi bhi kaam me madad ke liye sawaal poochhiye.",
+    "नमस्कार Admin! Main aapka AI Sahayak hoon. License keys, users, artists, courses, Telegram ya app ke kisi bhi kaam me madad ke liye sawaal poochhiye.",
   kathakar:
     "नमस्कार! Main aapka AI Sahayak hoon. Programs, artist booking, planning ya kirtan-related sawaal Hindi ya Hinglish me poochh sakte hain.",
 };
 
 const STARTERS: Record<"admin" | "kathakar", string[]> = {
   admin: [
-    "Naye users ko approve karne ka sahi tarika kya hai?",
-    "License key dene se pehle kya check karun?",
-    "Artists ko app use karna kaise samjhaun?",
+    "Naye user ka license key kaise generate karun?",
+    "Users aur artists ko manage karne ka tarika kya hai?",
+    "Courses aur Telegram bot kaise use hote hain?",
   ],
   kathakar: [
     "Kirtan program ki planning kaise karun?",
