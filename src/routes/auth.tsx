@@ -154,9 +154,9 @@ function AuthPage() {
 
   async function startSessionOnThisDevice() {
     try {
+      // This device becomes the active session. Other devices detect the server-side
+      // active-device change and sign out through the existing realtime/poll check.
       await activateDeviceSession();
-      const { error: signOutError } = await supabase.auth.signOut({ scope: "others" });
-      if (signOutError) throw signOutError;
     } catch (error) {
       await supabase.auth.signOut({ scope: "local" });
       throw new Error("Single-device security check fail ho gaya. Dobara login karein.");
