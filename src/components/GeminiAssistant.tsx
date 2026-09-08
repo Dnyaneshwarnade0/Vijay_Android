@@ -39,11 +39,43 @@ export function GeminiAssistant({ role }: { role: "admin" | "kathakar" }) {
   ]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [linkLoading, setLinkLoading] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, busy]);
+
+  async function connectTelegramAi() {
+    setLinkLoading(true);
+    setLinkError(null);
+    try {
+      const { data: sessionData } = await supabase.auth.refreshSession();
+      const token =
+        sessionData.session?.access_token ??
+        (await supabase.auth.getSession()).data.session?.access_token;
+      if (!token) throw new Error("Aapka session expire ho gaya hai. Dobara login karein.");
+
+      const { data, error } = await supabase.functions.invoke("telegram-ai-link", {
+        body: {},
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (error) throw error;
+
+      const url = (data as { link?: string; url?: string } | null)?.link ??
+        (data as { url?: string } | null)?.url;
+      if (!url || typeof url !== "string") throw new Error("Telegram link nahi mila. Thodi der baad try karein.");
+
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Telegram connect fail ho gaya. Dobara koshish karein.";
+      setLinkError(msg);
+      toast.error(msg);
+    } finally {
+      setLinkLoading(false);
+    }
+  }
 
   async function ask(text: string) {
     const q = text.trim().slice(0, MAX_LEN);
