@@ -153,9 +153,20 @@ function AuthPage() {
   const [cooldown, setCooldown] = useState(0);
 
   async function startSessionOnThisDevice() {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) throw new Error("Session start nahi ho paaya. Dobara login karein.");
+
+    const { data: roleRow, error: roleError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userData.user.id)
+      .maybeSingle();
+    if (roleError) throw new Error("Account role check nahi ho paaya. Dobara login karein.");
+
+    // Admin accounts may stay signed in on more than one device.
+    if (roleRow?.role === "admin") return;
+
     try {
-      // This device becomes the active session. Other devices detect the server-side
-      // active-device change and sign out through the existing realtime/poll check.
       await activateDeviceSession();
     } catch (error) {
       await supabase.auth.signOut({ scope: "local" });
