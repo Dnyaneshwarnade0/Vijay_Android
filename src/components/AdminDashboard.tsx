@@ -16,7 +16,7 @@ async function loadUsers(): Promise<Row[]> {
   if (error) throw error;
   if (roleError) throw roleError;
   const rolesByUser = new Map((roles ?? []).map((row) => [row.user_id, row.role as AppRole]));
-  return (profiles ?? []).map((profile) => ({ ...(profile as Profile), role: rolesByUser.get(profile.id) ?? null }));
+  return (profiles ?? []).map((profile) => ({ ...(profile as unknown as Profile), role: rolesByUser.get(profile.id) ?? null }));
 }
 
 export function AdminDashboard({ meId }: { meId: string }) {

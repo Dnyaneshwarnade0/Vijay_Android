@@ -83,7 +83,17 @@ export function useSession() {
     let signedOut = false;
     const checkActiveDevice = async () => {
       if (signedOut) return;
-      const { data, error } = await supabase
+      // active_device_sessions abhi generated types me nahi hai.
+      const client = supabase as unknown as {
+        from: (table: string) => {
+          select: (cols: string) => {
+            eq: (col: string, val: string) => {
+              maybeSingle: () => Promise<{ data: { device_id: string } | null; error: unknown }>;
+            };
+          };
+        };
+      };
+      const { data, error } = await client
         .from("active_device_sessions")
         .select("device_id")
         .eq("user_id", session.user.id)
