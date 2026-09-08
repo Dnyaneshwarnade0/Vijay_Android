@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Bot, BookOpen, Search, Send, Users } from "lucide-react";
+import { Bot, BookOpen, Search, Send, Sparkles, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMe, useSession } from "@/lib/session";
 import { AppShell, BottomNav } from "@/components/AppShell";
@@ -15,6 +15,7 @@ import { TelegramSettings } from "@/components/TelegramSettings";
 import { LicenseGate } from "@/components/LicenseGate";
 import { CourseManager } from "@/components/CourseManager";
 import { StudentCourses } from "@/components/StudentCourses";
+import { GeminiAssistant } from "@/components/GeminiAssistant";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -54,11 +55,13 @@ function Dashboard() {
         { key: "users", label: "Users", icon: Users },
         { key: "search", label: "Find artist", icon: Search },
         { key: "courses", label: "Courses", icon: BookOpen },
+        { key: "ai", label: "AI Sahayak", icon: Sparkles },
         { key: "telegram", label: "Telegram", icon: Send },
       ]} />}>
         {adminTab === "users" && <AdminDashboard meId={profile.id} />}
         {adminTab === "search" && <AvailabilitySearch />}
         {adminTab === "courses" && <CourseManager />}
+        {adminTab === "ai" && <GeminiAssistant role="admin" />}
         {adminTab === "telegram" && <TelegramSettings />}
       </AppShell>
     );
@@ -67,9 +70,13 @@ function Dashboard() {
   if (role === "artist") return <AppShell profile={profile} role={role}><ArtistDashboard meId={profile.id} /></AppShell>;
   return (
     <AppShell profile={profile} role={role} nav={<BottomNav active={kathakarTab} onChange={setKathakarTab} items={[
-      { key: "bot", label: "Bot", icon: Bot }, { key: "search", label: "Find artist", icon: Search },
+      { key: "bot", label: "Bot", icon: Bot },
+      { key: "search", label: "Find artist", icon: Search },
+      { key: "ai", label: "AI Sahayak", icon: Sparkles },
     ]} />}>
-      {kathakarTab === "bot" ? <ArtistBot /> : <AvailabilitySearch />}
+      {kathakarTab === "bot" && <ArtistBot />}
+      {kathakarTab === "search" && <AvailabilitySearch />}
+      {kathakarTab === "ai" && <GeminiAssistant role="kathakar" />}
     </AppShell>
   );
 }
