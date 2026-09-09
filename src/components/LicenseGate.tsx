@@ -31,10 +31,20 @@ export function LicenseGate({
   const [licenseKey, setLicenseKey] = useState("");
   const [busy, setBusy] = useState(false);
   const amount = PLAN_AMOUNT[role] ?? 599;
-  const upiUrl =
-    role === "artist"
-      ? "upi://pay?pa=vijaybodkhe2112-5@okaxis&pn=Vijay%20Classical%20Music&am=599.00&cu=INR&tn=Vijay%20Classical%20Music"
-      : "upi://pay?pa=vijaybodkhe2112-5@okaxis&pn=Vijay%20Classical%20Music&am=799.00&cu=INR&tn=Vijay%20Classical%20Music";
+  const upiQuery = `pa=vijaybodkhe2112-5@okaxis&pn=Vijay%20Classical%20Music&am=${amount}.00&cu=INR&tn=Vijay%20Classical%20Music`;
+  const upiUrl = `upi://pay?${upiQuery}`;
+  const gpayUrl = `gpay://upi/pay?${upiQuery}`;
+  const phonePeUrl = `phonepe://pay?${upiQuery}`;
+
+  function openPhonePe() {
+    // Try PhonePe-targeted deep link first; fall back to generic UPI intent.
+    const start = Date.now();
+    const fallback = setTimeout(() => {
+      if (Date.now() - start < 2500) window.location.href = upiUrl;
+    }, 2000);
+    window.location.href = phonePeUrl;
+    window.addEventListener("pagehide", () => clearTimeout(fallback), { once: true });
+  }
 
   async function signOut() {
     await qc.cancelQueries();
@@ -94,6 +104,33 @@ export function LicenseGate({
               alt={`₹${amount} payment QR code`}
               className="mx-auto mt-4 h-72 w-72 rounded-2xl border-2 border-gold/40 bg-white object-contain p-1"
             />
+
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.href = gpayUrl;
+                }}
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-maroon/30 bg-white py-3 text-sm font-bold text-ink shadow-sm transition hover:bg-surf2"
+                aria-label={`Pay ₹${amount} with Google Pay`}
+              >
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#4285F4] text-[11px] font-black text-white">
+                  G
+                </span>
+                Google Pay
+              </button>
+              <button
+                type="button"
+                onClick={openPhonePe}
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-maroon/30 bg-white py-3 text-sm font-bold text-ink shadow-sm transition hover:bg-surf2"
+                aria-label={`Pay ₹${amount} with PhonePe`}
+              >
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#5F259F] text-[11px] font-black text-white">
+                  Pe
+                </span>
+                PhonePe
+              </button>
+            </div>
 
             <button
               type="button"
