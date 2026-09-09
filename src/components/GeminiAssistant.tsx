@@ -98,28 +98,14 @@ export function GeminiAssistant({ role }: { role: "admin" | "kathakar" }) {
     setMessages((m) => [...m, { id: uid++, from: "me", text: q }]);
     setBusy(true);
     try {
-      const { data: sessionData } = await supabase.auth.refreshSession();
-      const token =
-        sessionData.session?.access_token ??
-        (await supabase.auth.getSession()).data.session?.access_token;
-      if (!token) throw new Error("Aapka session expire ho gaya hai. Dobara login karein.");
-
-      const { data, error } = await supabase.functions.invoke("gemini-chat", {
-        body: { message: q },
-        headers: { Authorization: `Bearer ${token}` },
+      const context = await buildArtistContext(q);
+      const res = await askAi({
+        data: { message: q, role, context, today: toISODate(new Date()) },
       });
-      if (error) throw error;
-
-      const reply =
-        (data as { reply?: string; message?: string; text?: string } | null)?.reply ??
-        (data as { message?: string } | null)?.message ??
-        (data as { text?: string } | null)?.text;
-      if (!reply) throw new Error("AI se jawab nahi mila. Thodi der baad try karein.");
-
-      setMessages((m) => [...m, { id: uid++, from: "ai", text: reply }]);
+      setMessages((m) => [...m, { id: uid++, from: "ai", text: res.reply }]);
     } catch (e) {
       const msg = await getFunctionErrorMessage(e);
-      if (msg === "Login required") {
+      if (msg.includes("Login required")) {
         await supabase.auth.signOut({ scope: "local" });
         toast.error("Aapka login session expire ho gaya tha. Kripya dobara login karein.");
         window.location.assign("/auth?mode=login");
@@ -131,6 +117,7 @@ export function GeminiAssistant({ role }: { role: "admin" | "kathakar" }) {
       setBusy(false);
     }
   }
+
 
   return (
     <div className="flex min-h-[60vh] flex-col gap-3">
