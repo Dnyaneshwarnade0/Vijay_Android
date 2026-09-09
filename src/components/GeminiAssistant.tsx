@@ -18,10 +18,11 @@ interface Msg {
 
 const WELCOME: Record<"admin" | "kathakar", string> = {
   admin:
-    "नमस्कार Admin! Main aapka AI Sahayak hoon. License keys, users, artists, courses, Telegram ya app ke kisi bhi kaam me madad ke liye sawaal poochhiye.",
+    "नमस्कार Admin! Main aapka AI Sahayak hoon (मराठी / हिंदी / English). Puchhiye: \"5 September la kon tabla artist free aahe?\", license keys, users, courses ya Telegram ke baare me.",
   kathakar:
-    "नमस्कार! Main aapka AI Sahayak hoon. Programs, artist booking, planning ya kirtan-related sawaal Hindi ya Hinglish me poochh sakte hain.",
+    "नमस्कार! Main aapka AI Sahayak hoon (मराठी / हिंदी / English). Puchhiye: \"kal kaun sa artist free hai?\", \"10 Sep te 12 Sep octapad artist\", ya program planning ke sawaal.",
 };
+
 
 let uid = 0;
 
