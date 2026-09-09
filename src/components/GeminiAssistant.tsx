@@ -47,7 +47,30 @@ function getFunctionErrorMessage(error: unknown) {
     .catch(() => error.message);
 }
 
+/** Reads the artist availability the question is about and packs it into a tiny text block. */
+async function buildArtistContext(question: string) {
+  try {
+    const q = parseFreeQuery(question);
+    const artists = await findFreeArtists(supabase, q);
+    const lines = artists
+      .slice(0, 12)
+      .map(
+        (a) =>
+          `- ${a.full_name || "Artist"} | ${a.category ?? "-"} | ${a.phone ?? "no phone"} | free: ${a.dates
+            .slice(0, 8)
+            .join(", ")}`,
+      );
+    return [
+      `Range: ${rangeLabel(q)} (${q.from} to ${q.to}), category: ${q.category ?? "all"}`,
+      lines.length ? lines.join("\n") : "No free artist found in this range.",
+    ].join("\n");
+  } catch {
+    return "";
+  }
+}
+
 export function GeminiAssistant({ role }: { role: "admin" | "kathakar" }) {
+  const askAi = useServerFn(askSahayak);
   const [messages, setMessages] = useState<Msg[]>([
     { id: uid++, from: "ai", text: WELCOME[role] },
   ]);
@@ -56,6 +79,7 @@ export function GeminiAssistant({ role }: { role: "admin" | "kathakar" }) {
   const [linkLoading, setLinkLoading] = useState(false);
   const [linkError, setLinkError] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
