@@ -105,6 +105,33 @@ export function LicenseGate({
               className="mx-auto mt-4 h-72 w-72 rounded-2xl border-2 border-gold/40 bg-white object-contain p-1"
             />
 
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.href = gpayUrl;
+                }}
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-maroon/30 bg-white py-3 text-sm font-bold text-ink shadow-sm transition hover:bg-surf2"
+                aria-label={`Pay ₹${amount} with Google Pay`}
+              >
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#4285F4] text-[11px] font-black text-white">
+                  G
+                </span>
+                Google Pay
+              </button>
+              <button
+                type="button"
+                onClick={openPhonePe}
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-maroon/30 bg-white py-3 text-sm font-bold text-ink shadow-sm transition hover:bg-surf2"
+                aria-label={`Pay ₹${amount} with PhonePe`}
+              >
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#5F259F] text-[11px] font-black text-white">
+                  Pe
+                </span>
+                PhonePe
+              </button>
+            </div>
+
             <button
               type="button"
               onClick={() => {
