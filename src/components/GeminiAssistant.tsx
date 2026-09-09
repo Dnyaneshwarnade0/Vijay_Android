@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Sparkles, Send, User } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { askSahayak } from "@/lib/ai.functions";
+import { findFreeArtists, parseFreeQuery, rangeLabel } from "@/lib/free-artists";
+import { toISODate } from "@/lib/calendar";
+
 
 const MAX_LEN = 1200;
 
