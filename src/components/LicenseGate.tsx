@@ -31,10 +31,20 @@ export function LicenseGate({
   const [licenseKey, setLicenseKey] = useState("");
   const [busy, setBusy] = useState(false);
   const amount = PLAN_AMOUNT[role] ?? 599;
-  const upiUrl =
-    role === "artist"
-      ? "upi://pay?pa=vijaybodkhe2112-5@okaxis&pn=Vijay%20Classical%20Music&am=599.00&cu=INR&tn=Vijay%20Classical%20Music"
-      : "upi://pay?pa=vijaybodkhe2112-5@okaxis&pn=Vijay%20Classical%20Music&am=799.00&cu=INR&tn=Vijay%20Classical%20Music";
+  const upiQuery = `pa=vijaybodkhe2112-5@okaxis&pn=Vijay%20Classical%20Music&am=${amount}.00&cu=INR&tn=Vijay%20Classical%20Music`;
+  const upiUrl = `upi://pay?${upiQuery}`;
+  const gpayUrl = `gpay://upi/pay?${upiQuery}`;
+  const phonePeUrl = `phonepe://pay?${upiQuery}`;
+
+  function openPhonePe() {
+    // Try PhonePe-targeted deep link first; fall back to generic UPI intent.
+    const start = Date.now();
+    const fallback = setTimeout(() => {
+      if (Date.now() - start < 2500) window.location.href = upiUrl;
+    }, 2000);
+    window.location.href = phonePeUrl;
+    window.addEventListener("pagehide", () => clearTimeout(fallback), { once: true });
+  }
 
   async function signOut() {
     await qc.cancelQueries();
